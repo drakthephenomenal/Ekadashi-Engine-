@@ -6,7 +6,14 @@
 <title>Ekādaśī Engine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/swisseph-wasm@1.0.4/dist/swisseph.js"></script>
+<script>
+  window.Module = {
+    locateFile: function(s) {
+      return 'https://cdn.jsdelivr.net/npm/swisseph-wasm@1.0.4/dist/' + s;
+    }
+  };
+</script>
+<script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/swisseph-wasm@1.0.4/dist/swisseph.js"></script>
 
 <style>
 :root {
