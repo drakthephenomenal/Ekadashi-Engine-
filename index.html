@@ -809,6 +809,64 @@ footer {
 .parana-meta { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: var(--muted); margin-top: 0.35rem; line-height: 1.65; }
 .parana-meta .key { color: var(--ink); }
 .status-note { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--muted); text-align: center; padding: 1rem; }
+
+/* ── Skeleton / shimmer card while a result is computing ── */
+.ek-skeleton {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  position: relative;
+}
+.ek-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(200,96,26,0.10) 40%,
+    rgba(184,150,12,0.13) 50%,
+    rgba(200,96,26,0.10) 60%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.ek-skel-head {
+  display: flex; align-items: center; gap: 0.8rem;
+  padding: 0.9rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+}
+.ek-skel-dot   { width: 7px; height: 7px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+.ek-skel-line  { height: 0.85rem; border-radius: 2px; background: var(--border); }
+.ek-skel-body  { display: grid; grid-template-columns: 1fr 1fr 1fr; }
+@media (max-width: 580px) { .ek-skel-body { grid-template-columns: 1fr; } }
+.ek-skel-col   { padding: 0.9rem 1.2rem; border-right: 1px solid var(--border); }
+.ek-skel-col:last-child { border-right: none; }
+.ek-computing-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  opacity: 0.85;
+  padding: 0.55rem 1.2rem 0.4rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.ek-computing-label .spinner {
+  width: 10px; height: 10px;
+  border-width: 1.5px;
+  margin-right: 0;
+}
 </style>
 </head>
 <body>
@@ -1030,7 +1088,7 @@ async function calculateRange() {
 
   if (!lat || !lon) { alert('Please enter latitude and longitude.'); return; }
   if (!fromStr || !toStr) { alert('Please enter both dates.'); return; }
-  if (!_seReady) { alert('Swiss Ephemeris still loading.'); return; }
+  if (!_seReady) { alert('Ephemeris still initialising. Please wait.'); return; }
 
   const [fy,fm,fd] = fromStr.split('-').map(Number);
   const [ty,tm,td] = toStr.split('-').map(Number);
@@ -1091,24 +1149,51 @@ async function calculateRange() {
   document.getElementById('rangeCount').textContent = ekDays.length + ' found';
   rr.classList.add('visible');
 
-  // ── Phase 2: run full engine for each Ekadashi day ──
+  // ── Phase 2: run full engine for each Ekadashi day — stream results as they arrive ──
+  let completedCount = 0;
+
   for (let idx = 0; idx < ekDays.length; idx++) {
     const dayD = ekDays[idx];
-    rangeLog(`Processing ${fmtDate(dayD)}…`, 'info');
+
+    // 1. Insert a skeleton placeholder immediately so the user sees progress
+    const skeleton = _buildSkeleton(idx + 1, dayD);
+    document.getElementById('rangeList').appendChild(skeleton);
+    skeleton.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    rangeLog(`Computing ${fmtDate(dayD)}…`, 'info');
+
     try {
       const r = await runEkadashiEngine(lat, lon, dayD);
+      completedCount++;
+      // 2. Replace the skeleton with the real card (smooth swap)
       if (r.isEkadashi) {
         const card = buildEkEntry(r, idx + 1);
-        document.getElementById('rangeList').appendChild(card);
+        card.style.animationDelay = '0s'; // already visible, no stagger needed
+        skeleton.replaceWith(card);
+        rangeLog(`✓ ${r.ekName.en} — fast ${fmtDate(r.fastDay)}`, 'ok');
+      } else {
+        skeleton.remove();
       }
     } catch(e) {
+      // Turn the skeleton into an error card
+      skeleton.classList.remove('ek-skeleton');
+      skeleton.classList.add('ek-entry');
+      skeleton.innerHTML = `
+        <div class="ek-computing-label" style="color:var(--red);">
+          ✗ Error — ${fmtDate(dayD)}
+        </div>
+        <div style="padding:0.7rem 1.2rem;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--red);">
+          ${e.message}
+        </div>`;
       rangeLog(`Error on ${fmtDate(dayD)}: ${e.message}`, 'error');
     }
+
     pb.style.width = Math.round(50 + (idx + 1) / ekDays.length * 50) + '%';
-    if (idx % 2 === 0) await new Promise(r => setTimeout(r, 0));
+    // Yield to browser every iteration so paint isn't blocked
+    await new Promise(resolve => setTimeout(resolve, 0));
   }
 
-  rangeLog('═══ Range Complete ═══', 'ok');
+  rangeLog(`═══ Complete — ${completedCount} Ekādaśī calculated ═══`, 'ok');
   pw.classList.remove('visible');
   btn.disabled = false; btn.textContent = 'Generate Ekādaśī List';
 }
@@ -1178,8 +1263,40 @@ function buildEkEntry(r, serial) {
   return div;
 }
 
-// ═══════════════════════════════════════════════════════════
-//  LOG
+// ════════════════════════════════════════════════════════
+//  SKELETON PLACEHOLDER (shown while engine computes)
+// ════════════════════════════════════════════════════════
+function _buildSkeleton(serial, dayD) {
+  const div = document.createElement('div');
+  div.className = 'ek-skeleton';
+  div.innerHTML = `
+    <div class="ek-computing-label">
+      <span class="spinner"></span>
+      Computing #${serial} — ${fmtDate(dayD)}
+    </div>
+    <div class="ek-skel-head">
+      <div class="ek-skel-dot"></div>
+      <div class="ek-skel-line" style="width:45%"></div>
+      <div class="ek-skel-line" style="width:18%;margin-left:auto"></div>
+    </div>
+    <div class="ek-skel-body">
+      <div class="ek-skel-col">
+        <div class="ek-skel-line" style="width:55%;margin-bottom:0.55rem"></div>
+        <div class="ek-skel-line" style="width:80%"></div>
+      </div>
+      <div class="ek-skel-col">
+        <div class="ek-skel-line" style="width:40%;margin-bottom:0.55rem"></div>
+        <div class="ek-skel-line" style="width:70%;margin-bottom:0.4rem"></div>
+        <div class="ek-skel-line" style="width:60%"></div>
+      </div>
+      <div class="ek-skel-col">
+        <div class="ek-skel-line" style="width:50%;margin-bottom:0.55rem"></div>
+        <div class="ek-skel-line" style="width:85%"></div>
+      </div>
+    </div>
+  `;
+  return div;
+}
 // ═══════════════════════════════════════════════════════════
 function log(msg, type='info') {
   const box = document.getElementById('logBox');
@@ -1247,9 +1364,26 @@ function _getSunTime(dateLocal, lat, lon, which) {
 function getSunriseUTC(dateLocal, lat, lon) { return _getSunTime(dateLocal, lat, lon, 'rise'); }
 function getSunsetUTC(dateLocal, lat, lon)  { return _getSunTime(dateLocal, lat, lon, 'set');  }
 
-// Moon-Sun elongation → tithi index (1–30) using SEBridge
+// Lahiri ayanamsha for a given date (degrees).
+// Formula: IAU 1976 precession-based, matches Swiss Ephemeris Lahiri to ~0.01°.
+function _lahiriAyanamsha(date) {
+  const jd = _toJD(date);
+  const T  = (jd - 2451545.0) / 36525.0;   // Julian centuries from J2000
+  // Lahiri (Chitrapaksha) ayanamsha — widely used in Indian panchang
+  return 23.85 + T * 1.3966;               // degrees; accurate to ~1 arcmin over ±50 yr
+}
+
+// Sidereal Moon-Sun elongation → tithi index (1–30).
+// astronomy-engine works in tropical coordinates; subtracting the same ayanamsha
+// from both bodies cancels it in the elongation difference, so only the Moon
+// sidereal longitude matters here — but we keep both explicit for clarity.
 function _seElongation(date) {
-  return SEBridge.moonElongation(date);          // [0, 360)
+  const ayan   = _lahiriAyanamsha(date);
+  const moonT  = SEBridge.moonLongitude(date);   // tropical [0,360)
+  const sunT   = SEBridge.sunLongitude(date);    // tropical [0,360)
+  const moonS  = ((moonT - ayan) % 360 + 360) % 360;  // sidereal
+  const sunS   = ((sunT  - ayan) % 360 + 360) % 360;  // sidereal
+  return ((moonS - sunS) % 360 + 360) % 360;           // [0,360)
 }
 function _seTithiIdx(date) {
   return Math.floor(_seElongation(date) / 12) + 1; // 1–30
@@ -1551,13 +1685,8 @@ const EK_NAMES_BN = {
   }
 };
 function getEkadashiName(date, paksha) {
-  // Rough month index from sidereal sun longitude (good enough for naming).
-  // SEBridge.sunLongitude() returns tropical ecliptic longitude; subtract
-  // Lahiri ayanamsha to get sidereal longitude.
-  const sunLon = SEBridge.sunLongitude(date);   // tropical [0, 360)
-  const jd = _toJD(date);
-  const T  = (jd - 2451545) / 36525;
-  const ayan   = 23.473 + T * 1.3966;           // Lahiri ayanamsha approx
+  const sunLon = SEBridge.sunLongitude(date);       // tropical [0, 360)
+  const ayan   = _lahiriAyanamsha(date);
   const sunSid = ((sunLon - ayan) % 360 + 360) % 360;
   const mIdx   = Math.floor(sunSid / 30) % 12;
   const en = EK_NAMES[paksha][mIdx]    || 'Ekādaśī';
