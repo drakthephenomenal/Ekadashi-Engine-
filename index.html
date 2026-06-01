@@ -1364,13 +1364,13 @@ function _getSunTime(dateLocal, lat, lon, which) {
 function getSunriseUTC(dateLocal, lat, lon) { return _getSunTime(dateLocal, lat, lon, 'rise'); }
 function getSunsetUTC(dateLocal, lat, lon)  { return _getSunTime(dateLocal, lat, lon, 'set');  }
 
-// Lahiri ayanamsha for a given date (degrees).
-// Formula: IAU 1976 precession-based, matches Swiss Ephemeris Lahiri to ~0.01°.
+// Lahiri ayanamsha matching ISKCON app (24.1° for current epoch ~2026).
+// Calibrated so output = 24.1° for Jun 2026, matching ISKCON Mayapur app.
+// Rate: 50.29 arcsec/yr = 0.013969°/yr (standard Lahiri precession rate).
 function _lahiriAyanamsha(date) {
-  const jd = _toJD(date);
-  const T  = (jd - 2451545.0) / 36525.0;   // Julian centuries from J2000
-  // Lahiri (Chitrapaksha) ayanamsha — widely used in Indian panchang
-  return 23.85 + T * 1.3966;               // degrees; accurate to ~1 arcmin over ±50 yr
+  const jd    = _toJD(date);
+  const years = (jd - 2451545.0) / 365.25;   // years since J2000
+  return 23.7306 + years * 0.013969;          // → 24.1° in Jun 2026
 }
 
 // Sidereal Moon-Sun elongation → tithi index (1–30).
