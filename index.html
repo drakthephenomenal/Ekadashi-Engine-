@@ -1,1485 +1,607 @@
 <!DOCTYPE html>
-<html lang="sa">
+<html lang="bn">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>पञ्चाङ्गम् — Vedic Panchang</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;500;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Sans+Devanagari:wght@300;400;500;600&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>পঞ্জিকা — Bengali Panchang</title>
+<meta name="description" content="বাংলা পঞ্জিকা — তিথি, নক্ষত্র, যোগ, করণ ও বৈষ্ণব মাস" />
+<meta name="theme-color" content="#080614" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Serif+Bengali:wght@400;600;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet" />
 <style>
-  :root {
-    --cosmos: #080614;
-    --deep-indigo: #0D0A1E;
-    --indigo-mid: #16113A;
-    --saffron: #E8A030;
-    --saffron-light: #F5C060;
-    --lotus: #C96B8A;
-    --lotus-light: #E08BA8;
-    --moonlight: #F5EDD8;
-    --moonlight-dim: #C8BEA8;
-    --vedic-teal: #2A7B6F;
-    --vedic-teal-light: #3DA898;
-    --star-silver: #A8B8D8;
-    --gold-glow: rgba(232,160,48,0.15);
-    --card-bg: rgba(22,17,58,0.85);
-    --border-gold: rgba(232,160,48,0.3);
+  :root{
+    --bg:#080614; --bg2:#0D0A1E; --panel:rgba(22,17,58,.85);
+    --saffron:#E8A030; --saffron-l:#F5C060; --lotus:#C96B8A;
+    --moon:#F5EDD8; --moon-d:#C8BEA8; --teal:#3DA898;
+    --gold:rgba(232,160,48,.35); --border:rgba(232,160,48,.25);
+    --today:#E8A030; --shukla:#F5EDD8; --krishna:#7E84A8;
   }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg);color:var(--moon);font-family:'Hind Siliguri',system-ui,sans-serif;min-height:100vh}
+  body{background:
+    radial-gradient(ellipse at 20% 10%,rgba(42,123,111,.10),transparent 50%),
+    radial-gradient(ellipse at 80% 90%,rgba(201,107,138,.10),transparent 50%),
+    var(--bg);
+    padding-bottom:env(safe-area-inset-bottom)}
+  .app{max-width:760px;margin:0 auto;padding:18px 14px 60px}
+  header{text-align:center;padding:16px 0 18px;border-bottom:1px solid var(--border);margin-bottom:18px}
+  .om{font-size:1.6rem;color:var(--saffron);opacity:.6}
+  h1{font-family:'Noto Serif Bengali',serif;font-size:clamp(1.5rem,5vw,2.1rem);font-weight:700;color:var(--saffron-l);letter-spacing:.02em}
+  .sub{font-size:.85rem;color:var(--moon-d);margin-top:4px;font-style:italic}
+  .today-card{background:linear-gradient(160deg,rgba(232,160,48,.12),rgba(201,107,138,.08));
+    border:1px solid var(--gold);border-radius:18px;padding:18px 16px;margin-bottom:18px}
+  .td-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .td-date{font-family:'Noto Serif Bengali',serif;font-size:1.4rem;font-weight:700;color:var(--saffron-l)}
+  .td-greg{font-size:.8rem;color:var(--moon-d)}
+  .td-tithi{margin-top:10px;font-family:'Noto Serif Bengali',serif;font-size:1.7rem;font-weight:700;color:var(--moon)}
+  .td-paksha{display:inline-block;margin-left:8px;font-size:.7rem;padding:3px 10px;border-radius:20px;background:rgba(245,237,216,.1);color:var(--moon-d);vertical-align:middle;letter-spacing:.06em;text-transform:uppercase;font-family:'Cinzel',serif}
+  .td-paksha.krishna{background:rgba(126,132,168,.18);color:#B0B6D0}
+  .months{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .month-chip{background:rgba(8,6,20,.4);border:1px solid var(--border);border-radius:10px;padding:8px 10px}
+  .mc-lbl{font-size:.7rem;color:var(--moon-d);letter-spacing:.05em;text-transform:uppercase;font-family:'Cinzel',serif}
+  .mc-val{font-family:'Noto Serif Bengali',serif;font-size:1.05rem;color:var(--saffron-l);margin-top:2px;font-weight:600}
+  .mc-sub{font-size:.7rem;color:var(--moon-d);margin-top:2px}
 
-  * { margin:0; padding:0; box-sizing:border-box; }
+  /* Calendar */
+  .cal-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0 12px}
+  .cal-nav button{background:var(--panel);border:1px solid var(--border);color:var(--moon);width:38px;height:38px;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .cal-nav button:active{background:rgba(232,160,48,.2)}
+  .cal-title{font-family:'Noto Serif Bengali',serif;font-size:1.15rem;color:var(--saffron-l);font-weight:600;text-align:center;flex:1}
+  .cal-title small{display:block;font-size:.7rem;color:var(--moon-d);font-family:'Cinzel',serif;letter-spacing:.1em;margin-top:2px;font-weight:400}
+  .cal{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:10px;overflow:hidden}
+  .cal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
+  .cal-week div{text-align:center;font-size:.7rem;color:var(--moon-d);padding:6px 0;font-weight:600;letter-spacing:.04em}
+  .cal-week div:first-child{color:var(--lotus)}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .cell{aspect-ratio:1/1.15;border-radius:10px;background:rgba(8,6,20,.45);border:1px solid transparent;padding:5px 4px 4px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;position:relative;transition:.15s;min-height:64px;overflow:hidden}
+  .cell:active{transform:scale(.96)}
+  .cell.empty{background:transparent;pointer-events:none}
+  .cell.today{border-color:var(--today);background:linear-gradient(160deg,rgba(232,160,48,.22),rgba(232,160,48,.06));box-shadow:0 0 0 1px var(--today) inset}
+  .cell.sel{border-color:var(--lotus);box-shadow:0 0 0 1px var(--lotus) inset}
+  .cell.sun .gd{color:var(--lotus)}
+  .gd{font-size:.85rem;font-weight:600;color:var(--moon);font-family:'Cinzel',serif;line-height:1}
+  .tithi-name{font-family:'Noto Serif Bengali',serif;font-size:.72rem;line-height:1.05;color:var(--moon-d);text-align:right;font-weight:600}
+  .cell.purnima .tithi-name,.cell.amavasya .tithi-name{color:var(--saffron-l)}
+  .cell .pdot{position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:var(--shukla)}
+  .cell.krishna .pdot{background:var(--krishna)}
+  .cell.fest::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--saffron)}
 
-  body {
-    background: var(--cosmos);
-    color: var(--moonlight);
-    font-family: 'EB Garamond', serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-    position: relative;
-  }
+  /* Detail panel */
+  .detail{margin-top:14px;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px}
+  .d-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(232,160,48,.15)}
+  .d-date{font-family:'Noto Serif Bengali',serif;font-size:1.2rem;color:var(--saffron-l);font-weight:700}
+  .d-greg{font-size:.75rem;color:var(--moon-d)}
+  .d-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .d-item{background:rgba(8,6,20,.4);border-radius:8px;padding:8px 10px;border:1px solid rgba(232,160,48,.1)}
+  .d-item.wide{grid-column:1 / -1}
+  .d-lbl{font-size:.65rem;color:var(--moon-d);letter-spacing:.06em;text-transform:uppercase;font-family:'Cinzel',serif}
+  .d-val{font-family:'Noto Serif Bengali',serif;font-size:.95rem;color:var(--moon);margin-top:2px;font-weight:600}
+  .d-val small{display:block;font-family:'Cinzel',serif;font-size:.65rem;color:var(--moon-d);font-weight:400;letter-spacing:.04em;margin-top:1px}
+  .fest-list{margin-top:6px}
+  .fest{background:linear-gradient(90deg,rgba(232,160,48,.18),rgba(201,107,138,.1));border:1px solid var(--gold);border-radius:8px;padding:8px 10px;margin-top:6px;font-family:'Noto Serif Bengali',serif;font-size:.92rem;color:var(--saffron-l);font-weight:600}
+  .fest small{display:block;font-family:'Hind Siliguri',sans-serif;font-size:.72rem;color:var(--moon-d);font-weight:400;margin-top:2px}
 
-  /* Star field */
-  .starfield {
-    position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    background: 
-      radial-gradient(ellipse at 20% 30%, rgba(42,123,111,0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 70%, rgba(201,107,138,0.06) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 50%, rgba(13,10,30,0) 0%, var(--cosmos) 100%);
-  }
+  footer{text-align:center;margin-top:24px;padding:14px;color:var(--moon-d);font-size:.72rem;line-height:1.5}
+  footer .om2{color:var(--saffron);font-size:1rem;letter-spacing:.5em;margin-bottom:4px}
 
-  canvas#stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-
-  .app { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 20px 16px 60px; }
-
-  /* Header */
-  header {
-    text-align: center;
-    padding: 32px 0 24px;
-    border-bottom: 1px solid var(--border-gold);
-    margin-bottom: 28px;
-    position: relative;
-  }
-  header::before {
-    content: '☸';
-    display: block;
-    font-size: 2rem;
-    color: var(--saffron);
-    opacity: 0.4;
-    margin-bottom: 8px;
-    animation: slowSpin 60s linear infinite;
-  }
-  @keyframes slowSpin { to { transform: rotate(360deg); } }
-
-  .title-devanagari {
-    font-family: 'Noto Sans Devanagari', sans-serif;
-    font-size: clamp(1.6rem, 4vw, 2.6rem);
-    font-weight: 600;
-    color: var(--saffron-light);
-    letter-spacing: 0.05em;
-    line-height: 1.2;
-  }
-  .title-latin {
-    font-family: 'Cinzel Decorative', serif;
-    font-size: clamp(0.7rem, 2vw, 1rem);
-    color: var(--moonlight-dim);
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    margin-top: 6px;
-  }
-  .subtitle {
-    font-size: 0.85rem;
-    color: var(--star-silver);
-    margin-top: 8px;
-    font-style: italic;
-  }
-
-  /* Location bar */
-  .location-bar {
-    display: flex; align-items: center; justify-content: center; gap: 12px;
-    padding: 10px 20px;
-    background: var(--card-bg);
-    border: 1px solid var(--border-gold);
-    border-radius: 40px;
-    margin-bottom: 28px;
-    font-size: 0.85rem;
-    color: var(--star-silver);
-    backdrop-filter: blur(8px);
-  }
-  .location-bar .loc-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--vedic-teal-light);
-    box-shadow: 0 0 8px var(--vedic-teal-light);
-    animation: pulse 2s ease-in-out infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-  .btn-locate {
-    background: none; border: 1px solid var(--border-gold); color: var(--saffron);
-    padding: 4px 14px; border-radius: 20px; cursor: pointer; font-size: 0.8rem;
-    font-family: 'Cinzel', serif; transition: all 0.3s;
-  }
-  .btn-locate:hover { background: var(--gold-glow); }
-
-  /* Samvatsara banner */
-  .samvatsara-banner {
-    text-align: center;
-    background: linear-gradient(135deg, rgba(232,160,48,0.08), rgba(201,107,138,0.08));
-    border: 1px solid var(--border-gold);
-    border-radius: 12px;
-    padding: 16px 24px;
-    margin-bottom: 24px;
-    position: relative; overflow: hidden;
-  }
-  .samvatsara-banner::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(90deg, transparent, rgba(232,160,48,0.05), transparent);
-    animation: shimmer 4s ease-in-out infinite;
-  }
-  @keyframes shimmer { 0%,100%{transform:translateX(-100%)} 50%{transform:translateX(100%)} }
-  .samvat-label {
-    font-family: 'Cinzel', serif; font-size: 0.7rem; letter-spacing: 0.25em;
-    color: var(--moonlight-dim); text-transform: uppercase; margin-bottom: 4px;
-  }
-  .samvat-name {
-    font-family: 'Noto Sans Devanagari', sans-serif;
-    font-size: clamp(1.1rem, 3vw, 1.6rem);
-    color: var(--saffron-light);
-    font-weight: 600;
-  }
-  .samvat-sub {
-    font-size: 0.85rem; color: var(--star-silver); margin-top: 2px;
-  }
-
-  /* Moon wheel hero */
-  .moon-hero {
-    display: flex; justify-content: center; margin-bottom: 28px;
-  }
-  canvas#moonCanvas {
-    border-radius: 50%;
-    box-shadow: 0 0 60px rgba(232,160,48,0.15), 0 0 120px rgba(201,107,138,0.08);
-  }
-
-  /* Main grid */
-  .panchang-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-
-  .pancha-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-gold);
-    border-radius: 16px;
-    padding: 20px;
-    backdrop-filter: blur(12px);
-    position: relative; overflow: hidden;
-    transition: border-color 0.3s, transform 0.2s;
-  }
-  .pancha-card:hover {
-    border-color: rgba(232,160,48,0.6);
-    transform: translateY(-1px);
-  }
-  .pancha-card::before {
-    content: '';
-    position: absolute; top:0; left:0; right:0; height: 2px;
-    background: linear-gradient(90deg, transparent, var(--saffron), transparent);
-    opacity: 0.5;
-  }
-
-  .card-eyebrow {
-    font-family: 'Cinzel', serif;
-    font-size: 0.62rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--saffron);
-    opacity: 0.7;
-    margin-bottom: 8px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .card-eyebrow::after {
-    content: ''; flex: 1; height: 1px; background: var(--border-gold);
-  }
-
-  .card-main {
-    font-family: 'Noto Sans Devanagari', sans-serif;
-    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
-    font-weight: 600;
-    color: var(--moonlight);
-    line-height: 1.3;
-  }
-  .card-latin {
-    font-family: 'Cinzel', serif;
-    font-size: 0.85rem;
-    color: var(--saffron-light);
-    margin-top: 2px;
-  }
-  .card-sub {
-    font-size: 0.8rem;
-    color: var(--star-silver);
-    margin-top: 6px;
-    font-style: italic;
-    line-height: 1.5;
-  }
-  .card-time {
-    font-family: 'Cinzel', serif;
-    font-size: 0.75rem;
-    color: var(--vedic-teal-light);
-    margin-top: 4px;
-  }
-
-  /* Full-width cards */
-  .card-wide { grid-column: 1 / -1; }
-
-  /* Sun/Moon times row */
-  .solar-row {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-    margin-bottom: 16px;
-  }
-  .solar-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-gold);
-    border-radius: 14px;
-    padding: 18px 20px;
-    text-align: center;
-    backdrop-filter: blur(12px);
-  }
-  .solar-icon { font-size: 2rem; display: block; margin-bottom: 6px; }
-  .solar-label {
-    font-family: 'Cinzel', serif; font-size: 0.65rem; letter-spacing: 0.2em;
-    color: var(--moonlight-dim); text-transform: uppercase; margin-bottom: 4px;
-  }
-  .solar-devanagari {
-    font-family: 'Noto Sans Devanagari', sans-serif;
-    font-size: 1.1rem; font-weight: 600;
-    color: var(--saffron-light);
-  }
-  .solar-time {
-    font-family: 'Cinzel', serif;
-    font-size: 1.4rem; font-weight: 600;
-    color: var(--moonlight);
-    margin: 4px 0;
-  }
-  .solar-ghati {
-    font-size: 0.75rem; color: var(--star-silver); font-style: italic;
-  }
-
-  /* Brahma muhurta */
-  .brahma-card {
-    background: linear-gradient(135deg, rgba(42,123,111,0.12), rgba(13,10,30,0.9));
-    border-color: rgba(42,123,111,0.4);
-  }
-  .brahma-card .card-main { color: var(--vedic-teal-light); }
-
-  /* Gaurabda row */
-  .samvat-divider {
-    height: 1px; background: var(--border-gold); margin: 10px 0;
-  }
-  .samvat-gaurabda-row {
-    display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap;
-  }
-  .samvat-gaurabda-block { text-align: center; }
-  .samvat-era-label {
-    font-family: 'Cinzel', serif; font-size: 0.6rem; letter-spacing: 0.2em;
-    text-transform: uppercase; color: var(--lotus-light); margin-bottom: 3px;
-  }
-  .samvat-era-val {
-    font-family: 'Cinzel Decorative', serif;
-    font-size: clamp(1.1rem, 3vw, 1.5rem);
-    color: var(--lotus-light);
-    font-weight: 700;
-    text-shadow: 0 0 20px rgba(201,107,138,0.4);
-  }
-  .samvat-era-sub {
-    font-size: 0.72rem; color: var(--star-silver); margin-top: 1px; font-style: italic;
-  }
-  .samvat-era-sep {
-    font-size: 1.5rem; color: var(--border-gold); align-self: center;
-  }
-
-  /* Auspicious/inauspicious */
-  .kaala-grid {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px;
-  }
-  .kaala-item {
-    text-align: center; padding: 8px;
-    background: rgba(255,255,255,0.03);
-    border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);
-  }
-  .kaala-label {
-    font-family: 'Cinzel', serif; font-size: 0.58rem;
-    letter-spacing: 0.15em; text-transform: uppercase;
-    color: var(--moonlight-dim); margin-bottom: 4px;
-  }
-  .kaala-val {
-    font-family: 'Cinzel', serif; font-size: 0.78rem;
-    color: var(--lotus-light);
-  }
-
-  /* Festival */
-  .festival-banner {
-    background: linear-gradient(135deg, rgba(201,107,138,0.15), rgba(232,160,48,0.08));
-    border: 1px solid rgba(201,107,138,0.4);
-    border-radius: 14px;
-    padding: 16px 20px;
-    margin-bottom: 16px;
-    display: none;
-  }
-  .festival-banner.visible { display: block; }
-  .festival-label {
-    font-family: 'Cinzel', serif; font-size: 0.62rem;
-    letter-spacing: 0.25em; text-transform: uppercase;
-    color: var(--lotus-light); margin-bottom: 6px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .festival-name {
-    font-family: 'Noto Sans Devanagari', sans-serif;
-    font-size: 1.3rem; font-weight: 600; color: var(--saffron-light);
-  }
-  .festival-sub { font-size: 0.82rem; color: var(--star-silver); margin-top: 4px; }
-
-  /* Nav */
-  .day-nav {
-    display: flex; align-items: center; justify-content: center; gap: 16px;
-    margin-bottom: 24px;
-  }
-  .nav-btn {
-    background: var(--card-bg); border: 1px solid var(--border-gold);
-    color: var(--saffron); width: 40px; height: 40px; border-radius: 50%;
-    cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
-    transition: all 0.3s; backdrop-filter: blur(8px);
-  }
-  .nav-btn:hover { background: var(--gold-glow); transform: scale(1.05); }
-  .nav-today {
-    font-family: 'Cinzel', serif; font-size: 0.72rem; letter-spacing: 0.2em;
-    text-transform: uppercase; color: var(--moonlight-dim);
-    padding: 6px 18px; background: var(--card-bg); border: 1px solid var(--border-gold);
-    border-radius: 20px; cursor: pointer; transition: all 0.3s; backdrop-filter: blur(8px);
-  }
-  .nav-today:hover { color: var(--saffron); border-color: rgba(232,160,48,0.5); }
-
-  /* Loading */
-  .loading-overlay {
-    position: fixed; inset:0; background: var(--cosmos); z-index: 100;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    transition: opacity 0.5s;
-  }
-  .loading-overlay.hidden { opacity:0; pointer-events:none; }
-  .loading-yantra {
-    font-size: 3rem; animation: slowSpin 3s linear infinite;
-    color: var(--saffron); margin-bottom: 16px;
-  }
-  .loading-text {
-    font-family: 'Noto Sans Devanagari', sans-serif;
-    color: var(--moonlight-dim); font-size: 1rem;
-  }
-
-  /* Nakshatra bar */
-  .nakshatra-bar {
-    display: flex; gap: 4px; margin-top: 10px; flex-wrap: wrap;
-  }
-  .nk-pip {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--border-gold);
-    transition: all 0.3s;
-  }
-  .nk-pip.active { background: var(--saffron); box-shadow: 0 0 6px var(--saffron); }
-  .nk-pip.past { background: var(--vedic-teal); }
-
-  /* Gaurabda card */
-  .gaurabda-card {
-    background: linear-gradient(135deg, rgba(201,107,138,0.1), rgba(13,10,30,0.9));
-    border-color: rgba(201,107,138,0.35);
-  }
-  .gaurabda-inner {
-    display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap;
-  }
-  .gaurabda-left {
-    display: flex; gap: 12px; align-items: center; flex: 0 0 auto;
-  }
-  .gaurabda-icon { font-size: 2rem; }
-  .gaurabda-right {
-    flex: 1; display: flex; flex-direction: column; gap: 8px;
-    padding-left: 16px;
-    border-left: 1px solid rgba(201,107,138,0.2);
-  }
-  .gaurabda-detail {
-    display: flex; justify-content: space-between; align-items: baseline;
-    gap: 12px; flex-wrap: wrap;
-  }
-  .gd-label {
-    font-family: 'Cinzel', serif; font-size: 0.62rem; letter-spacing: 0.15em;
-    text-transform: uppercase; color: var(--lotus-light); white-space: nowrap;
-  }
-  .gd-val {
-    font-size: 0.82rem; color: var(--moonlight-dim); text-align: right;
-  }
-
-  /* Footer */
-  .panchang-footer {
-    margin-top: 40px;
-    border-top: 1px solid var(--border-gold);
-    padding-top: 28px;
-  }
-  .footer-inner { text-align: center; }
-  .footer-top {
-    display: flex; align-items: center; justify-content: center; gap: 16px;
-    margin-bottom: 8px;
-  }
-  .footer-om {
-    font-family: 'Noto Sans Devanagari', sans-serif;
-    font-size: 1.2rem; color: var(--saffron); opacity: 0.5;
-  }
-  .footer-title {
-    font-family: 'Cinzel Decorative', serif;
-    font-size: 0.9rem; color: var(--moonlight-dim); letter-spacing: 0.1em;
-  }
-  .footer-tagline {
-    font-size: 0.78rem; color: var(--star-silver);
-    font-style: italic; margin-bottom: 6px;
-  }
-  .footer-details {
-    font-family: 'Cinzel', serif;
-    font-size: 0.6rem; letter-spacing: 0.1em;
-    color: var(--moonlight-dim); opacity: 0.5;
-    margin-bottom: 14px; line-height: 1.8;
-  }
-  .footer-links {
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    flex-wrap: wrap;
-  }
-  .footer-link {
-    display: flex; align-items: center; gap: 6px;
-    color: var(--saffron); text-decoration: none;
-    font-family: 'Cinzel', serif; font-size: 0.72rem; letter-spacing: 0.1em;
-    border: 1px solid var(--border-gold); padding: 5px 14px; border-radius: 20px;
-    transition: all 0.3s;
-  }
-  .footer-link:hover { background: var(--gold-glow); }
-  .footer-sep { color: var(--border-gold); }
-  .footer-note { font-size: 0.7rem; color: var(--moonlight-dim); opacity: 0.5; font-style: italic; }
-
-  /* Responsive */
-  @media(max-width: 480px) {
-    .solar-row { grid-template-columns: 1fr; }
-    .kaala-grid { grid-template-columns: 1fr 1fr; }
-  }
-
-  .divider-om {
-    text-align: center; color: var(--saffron); opacity: 0.3;
-    font-size: 1.2rem; margin: 8px 0; font-family: 'Noto Sans Devanagari', sans-serif;
+  @media (min-width:600px){
+    .d-grid{grid-template-columns:repeat(3,1fr)}
+    .months{grid-template-columns:repeat(3,1fr)}
   }
 </style>
 </head>
 <body>
-
-<canvas id="stars"></canvas>
-<div class="starfield"></div>
-
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="loading-yantra">ॐ</div>
-  <div class="loading-text">गणना हो रही है…</div>
-</div>
-
 <div class="app">
   <header>
-    <div class="title-devanagari">पञ्चाङ्गम्</div>
-    <div class="title-latin">Pañcāṅgam — The Five Limbs of Time</div>
-    <div class="subtitle">Vedic astronomical reckoning · Day begins at sunrise</div>
+    <div class="om">ॐ</div>
+    <h1>পঞ্জিকা</h1>
+    <div class="sub">বৈদিক তিথি · নক্ষত্র · বৈষ্ণব মাস</div>
   </header>
 
-  <div class="location-bar" id="locationBar">
-    <span class="loc-dot"></span>
-    <span id="locText">Detecting location…</span>
-    <button class="btn-locate" onclick="detectLocation()">⊕ Locate</button>
+  <section class="today-card" id="todayCard">
+    <div class="td-row">
+      <div class="td-date" id="tdBangla">—</div>
+      <div class="td-greg" id="tdGreg">—</div>
+    </div>
+    <div>
+      <span class="td-tithi" id="tdTithi">—</span>
+      <span class="td-paksha" id="tdPaksha">—</span>
+    </div>
+    <div class="months">
+      <div class="month-chip">
+        <div class="mc-lbl">বঙ্গাব্দ মাস</div>
+        <div class="mc-val" id="tdBmonth">—</div>
+        <div class="mc-sub" id="tdBmonthEn">—</div>
+      </div>
+      <div class="month-chip">
+        <div class="mc-lbl">চান্দ্র মাস</div>
+        <div class="mc-val" id="tdHmonth">—</div>
+        <div class="mc-sub" id="tdHmonthEn">—</div>
+      </div>
+      <div class="month-chip">
+        <div class="mc-lbl">বৈষ্ণব মাস</div>
+        <div class="mc-val" id="tdVmonth">—</div>
+        <div class="mc-sub" id="tdVmonthEn">—</div>
+      </div>
+      <div class="month-chip">
+        <div class="mc-lbl">নক্ষত্র</div>
+        <div class="mc-val" id="tdNak">—</div>
+        <div class="mc-sub" id="tdNakEn">—</div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="cal-nav">
+    <button id="prev" aria-label="পূর্ববর্তী মাস">‹</button>
+    <div class="cal-title" id="calTitle">—<small id="calTitleEn">—</small></div>
+    <button id="next" aria-label="পরবর্তী মাস">›</button>
+  </nav>
+
+  <div class="cal">
+    <div class="cal-week">
+      <div>রবি</div><div>সোম</div><div>মঙ্গল</div><div>বুধ</div><div>বৃহঃ</div><div>শুক্র</div><div>শনি</div>
+    </div>
+    <div class="cal-grid" id="grid"></div>
   </div>
 
-  <div class="day-nav">
-    <button class="nav-btn" onclick="changeDay(-1)">◂</button>
-    <button class="nav-today" onclick="goToday()">आज · Adya</button>
-    <button class="nav-btn" onclick="changeDay(1)">▸</button>
-  </div>
-
-  <div class="samvatsara-banner">
-    <div class="samvat-label">Samvatsara · संवत्सर</div>
-    <div class="samvat-name" id="samvatsaraName">—</div>
-    <div class="samvat-sub" id="samvatsaraSub">—</div>
-    <div class="samvat-divider"></div>
-    <div class="samvat-gaurabda-row">
-      <div class="samvat-gaurabda-block">
-        <div class="samvat-era-label">গৌরাব্দ · Gaurabda</div>
-        <div class="samvat-era-val" id="gaurabdaYear">—</div>
-        <div class="samvat-era-sub" id="gaurabdaSub">—</div>
+  <section class="detail" id="detail" hidden>
+    <div class="d-head">
+      <div class="d-date" id="dDate">—</div>
+      <div class="d-greg" id="dGreg">—</div>
+    </div>
+    <div class="d-grid">
+      <div class="d-item">
+        <div class="d-lbl">তিথি</div>
+        <div class="d-val" id="dTithi">—<small id="dTithiEn"></small></div>
       </div>
-      <div class="samvat-era-sep">·</div>
-      <div class="samvat-gaurabda-block">
-        <div class="samvat-era-label">विक्रम संवत् · Vikrama</div>
-        <div class="samvat-era-val" id="vikramYear">—</div>
-        <div class="samvat-era-sub" id="vikramSub">—</div>
+      <div class="d-item">
+        <div class="d-lbl">পক্ষ</div>
+        <div class="d-val" id="dPaksha">—<small id="dPakshaEn"></small></div>
       </div>
-    </div>
-  </div>
-
-  <div class="moon-hero">
-    <canvas id="moonCanvas" width="180" height="180"></canvas>
-  </div>
-
-  <div class="festival-banner" id="festivalBanner">
-    <div class="festival-label">🪔 Parva · पर्व</div>
-    <div class="festival-name" id="festivalName">—</div>
-    <div class="festival-sub" id="festivalSub">—</div>
-  </div>
-
-  <div class="solar-row">
-    <div class="solar-card">
-      <span class="solar-icon">🌅</span>
-      <div class="solar-label">Sūryodaya · सूर्योदय</div>
-      <div class="solar-devanagari">Sunrise</div>
-      <div class="solar-time" id="sunriseTime">—</div>
-      <div class="solar-ghati" id="sunriseGhati">— Ghaṭī</div>
-    </div>
-    <div class="solar-card">
-      <span class="solar-icon">🌄</span>
-      <div class="solar-label">Sūryāsta · सूर्यास्त</div>
-      <div class="solar-devanagari">Sunset</div>
-      <div class="solar-time" id="sunsetTime">—</div>
-      <div class="solar-ghati" id="sunsetGhati">— Ghaṭī</div>
-    </div>
-  </div>
-
-  <div class="panchang-grid">
-
-    <!-- Tithi -->
-    <div class="pancha-card">
-      <div class="card-eyebrow">Tithi · तिथि — 1st Limb</div>
-      <div class="card-main" id="tithiDevanagari">—</div>
-      <div class="card-latin" id="tithiLatin">—</div>
-      <div class="card-sub" id="tithiSub">—</div>
-      <div class="card-time" id="tithiEnd">Ends: —</div>
-    </div>
-
-    <!-- Vara -->
-    <div class="pancha-card">
-      <div class="card-eyebrow">Vāra · वार — Day Lord</div>
-      <div class="card-main" id="varaDevanagari">—</div>
-      <div class="card-latin" id="varaLatin">—</div>
-      <div class="card-sub" id="varaSub">—</div>
-    </div>
-
-    <!-- Nakshatra -->
-    <div class="pancha-card">
-      <div class="card-eyebrow">Nakṣatra · नक्षत्र — 3rd Limb</div>
-      <div class="card-main" id="nakshatraDevanagari">—</div>
-      <div class="card-latin" id="nakshatraLatin">—</div>
-      <div class="card-sub" id="nakshatra-deity">—</div>
-      <div class="nakshatra-bar" id="nakshatraBar"></div>
-    </div>
-
-    <!-- Yoga -->
-    <div class="pancha-card">
-      <div class="card-eyebrow">Yoga · योग — 4th Limb</div>
-      <div class="card-main" id="yogaDevanagari">—</div>
-      <div class="card-latin" id="yogaLatin">—</div>
-      <div class="card-sub" id="yogaSub">—</div>
-    </div>
-
-    <!-- Karana -->
-    <div class="pancha-card">
-      <div class="card-eyebrow">Karaṇa · करण — 5th Limb</div>
-      <div class="card-main" id="karanaDevanagari">—</div>
-      <div class="card-latin" id="karanaLatin">—</div>
-      <div class="card-sub" id="karanaSub">—</div>
-    </div>
-
-    <!-- Paksha / Masa -->
-    <div class="pancha-card">
-      <div class="card-eyebrow">Māsa · Pakṣa — Lunar Month</div>
-      <div class="card-main" id="masaDevanagari">—</div>
-      <div class="card-latin" id="masaLatin">—</div>
-      <div class="card-sub" id="pakshaSub">—</div>
-    </div>
-
-    <!-- Brahma Muhurta -->
-    <div class="pancha-card brahma-card">
-      <div class="card-eyebrow">Brahmā Muhūrta · ब्रह्म मुहूर्त</div>
-      <div class="card-main" id="brahmaTime">—</div>
-      <div class="card-latin">Most auspicious time for sādhana</div>
-      <div class="card-sub" id="brahmaSub">1 hour 36 min before sunrise</div>
-    </div>
-
-    <!-- Moon sign -->
-    <div class="pancha-card">
-      <div class="card-eyebrow">Chandra · चन्द्र — Moon</div>
-      <div class="card-main" id="moonPhaseDevanagari">—</div>
-      <div class="card-latin" id="moonPhaseLatin">—</div>
-      <div class="card-sub" id="moonSignSub">—</div>
-    </div>
-
-    <!-- Inauspicious periods -->
-    <div class="pancha-card card-wide">
-      <div class="card-eyebrow">Muhūrta Kāla · मुहूर्त काल — Auspicious Periods</div>
-      <div class="kaala-grid">
-        <div class="kaala-item">
-          <div class="kaala-label">Rāhu Kāla</div>
-          <div class="kaala-val" id="rahuKala">—</div>
-        </div>
-        <div class="kaala-item">
-          <div class="kaala-label">Gulika Kāla</div>
-          <div class="kaala-val" id="gulikaKala">—</div>
-        </div>
-        <div class="kaala-item">
-          <div class="kaala-label">Yamagaṇḍa</div>
-          <div class="kaala-val" id="yamaganda">—</div>
-        </div>
-        <div class="kaala-item">
-          <div class="kaala-label">Abhijit Muhūrta</div>
-          <div class="kaala-val" id="abhijit">—</div>
-        </div>
-        <div class="kaala-item">
-          <div class="kaala-label">Amṛta Kāla</div>
-          <div class="kaala-val" id="amritaKala">—</div>
-        </div>
-        <div class="kaala-item">
-          <div class="kaala-label">Śubha Kāla</div>
-          <div class="kaala-val" id="shubhaKala">—</div>
-        </div>
+      <div class="d-item">
+        <div class="d-lbl">বার</div>
+        <div class="d-val" id="dVara">—<small id="dVaraEn"></small></div>
+      </div>
+      <div class="d-item">
+        <div class="d-lbl">নক্ষত্র</div>
+        <div class="d-val" id="dNak">—<small id="dNakEn"></small></div>
+      </div>
+      <div class="d-item">
+        <div class="d-lbl">যোগ</div>
+        <div class="d-val" id="dYoga">—<small id="dYogaEn"></small></div>
+      </div>
+      <div class="d-item">
+        <div class="d-lbl">করণ</div>
+        <div class="d-val" id="dKarana">—<small id="dKaranaEn"></small></div>
+      </div>
+      <div class="d-item">
+        <div class="d-lbl">বঙ্গাব্দ মাস</div>
+        <div class="d-val" id="dBmonth">—<small id="dBmonthEn"></small></div>
+      </div>
+      <div class="d-item">
+        <div class="d-lbl">চান্দ্র মাস</div>
+        <div class="d-val" id="dHmonth">—<small id="dHmonthEn"></small></div>
+      </div>
+      <div class="d-item">
+        <div class="d-lbl">বৈষ্ণব মাস</div>
+        <div class="d-val" id="dVmonth">—<small id="dVmonthEn"></small></div>
+      </div>
+      <div class="d-item wide" id="festWrap" hidden>
+        <div class="d-lbl">পর্ব / উৎসব</div>
+        <div class="fest-list" id="festList"></div>
       </div>
     </div>
+  </section>
 
-    <!-- Gaurabda Era -->
-    <div class="pancha-card gaurabda-card card-wide">
-      <div class="card-eyebrow">গৌরাব্দ · Gaurabda — Gaudiya Vaishnava Era</div>
-      <div class="gaurabda-inner">
-        <div class="gaurabda-left">
-          <div class="gaurabda-icon">🌺</div>
-          <div>
-            <div class="card-main" id="gaurabdaCardVal">—</div>
-            <div class="card-latin">Since Śrī Caitanya Mahāprabhu's appearance · 1486 CE</div>
-          </div>
-        </div>
-        <div class="gaurabda-right">
-          <div class="gaurabda-detail">
-            <span class="gd-label">Year begins</span>
-            <span class="gd-val">Phālguna Śukla Pūrṇimā</span>
-          </div>
-          <div class="gaurabda-detail">
-            <span class="gd-label">Current Māsa</span>
-            <span class="gd-val" id="gaurabdaCardSub">—</span>
-          </div>
-          <div class="gaurabda-detail">
-            <span class="gd-label">Tradition</span>
-            <span class="gd-val">Gauḍīya Vaiṣṇava Sampradāya</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- end panchang-grid -->
-
-  <div class="divider-om">ॐ ॐ ॐ</div>
-
-  <footer class="panchang-footer">
-    <div class="footer-inner">
-      <div class="footer-top">
-        <span class="footer-om">ॐ</span>
-        <span class="footer-title">पञ्चाङ्गम् · Pañcāṅgam</span>
-        <span class="footer-om">ॐ</span>
-      </div>
-      <div class="footer-tagline">Pure Vedic astronomical timekeeping · No Gregorian reckoning</div>
-      <div class="footer-details">
-        Day begins at sunrise · Tithi by Sun–Moon angular difference (12°/tithi) ·
-        Lahiri Ayanāṃśa · Vikrama Saṃvat · Gaurabda · 60-year Bṛhaspati cycle
-      </div>
-      <div class="footer-links">
-        <a href="https://github.com" target="_blank" class="footer-link">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
-          </svg>
-          View on GitHub
-        </a>
-        <span class="footer-sep">·</span>
-        <span class="footer-note">Astronomical calculations by Meeus algorithms</span>
-      </div>
-    </div>
+  <footer>
+    <div class="om2">ॐ ॐ ॐ</div>
+    <div>গণনা: চান্দ্র-সৌর দৈর্ঘ্য পার্থক্য (Meeus) · লহিড়ী অয়নাংশ</div>
+    <div style="margin-top:4px;opacity:.7">সম্পূর্ণ অফলাইনে কাজ করে · GitHub Pages এ হোস্টযোগ্য PWA</div>
   </footer>
-
-</div><!-- end .app -->
-
-<script>
+</div>
 
 <script>
-// ============================================================
-//  VEDIC PANCHANG ENGINE
-//  Pure astronomical calculations — no Gregorian display
-// ============================================================
+/* ============================================================
+   বাংলা পঞ্জিকা — Bengali Panchang Engine
+   ============================================================ */
 
-const DEG = Math.PI / 180;
-const RAD = 180 / Math.PI;
+// ---- Bengali numeral helpers ----
+const BN_DIGITS = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+const bn = n => String(n).replace(/\d/g, d => BN_DIGITS[+d]);
 
-// ---- DATA TABLES ----
-
-const SAMVATSARA = [
-  ["प्रभव","Prabhava"],["विभव","Vibhava"],["शुक्ल","Śukla"],["प्रमोदूत","Pramoda"],
-  ["प्रजोत्पत्ति","Prajāpati"],["अङ्गिरस","Aṅgirasa"],["श्रीमुख","Śrīmukha"],["भाव","Bhāva"],
-  ["युव","Yuva"],["धातृ","Dhātā"],["ईश्वर","Īśvara"],["बहुधान्य","Bahudhānya"],
-  ["प्रमाथी","Pramāthī"],["विक्रम","Vikrama"],["वृष","Vṛṣa"],["चित्रभानु","Citrabhānu"],
-  ["स्वभानु","Svabhānu"],["तारण","Tāraṇa"],["पार्थिव","Pārthiva"],["व्यय","Vyaya"],
-  ["सर्वजित","Sarvajit"],["सर्वधारी","Sarvadharī"],["विरोधी","Virodhī"],["विकृति","Vikṛti"],
-  ["खर","Khara"],["नन्दन","Nandana"],["विजय","Vijaya"],["जय","Jaya"],
-  ["मन्मथ","Manmatha"],["दुर्मुख","Durmukha"],["हेमलम्ब","Hemalambu"],["विलम्ब","Vilambu"],
-  ["विकारी","Vikārī"],["शार्वरी","Śārvari"],["प्लव","Plava"],["शुभकृत","Śubhakṛt"],
-  ["शोभन","Śobhana"],["क्रोधी","Krodhī"],["विश्वावसु","Viśvāvasu"],["पराभव","Parābhava"],
-  ["प्लवङ्ग","Plavaṅga"],["कीलक","Kīlaka"],["सौम्य","Saumya"],["साधारण","Sādhāraṇa"],
-  ["विरोधकृत","Virodhakṛt"],["परिधावी","Paridhāvī"],["प्रमादी","Pramādī"],["आनन्द","Ānanda"],
-  ["राक्षस","Rākṣasa"],["नल","Nala"],["पिङ्गल","Piṅgala"],["कालयुक्त","Kālayukta"],
-  ["सिद्धार्थी","Siddhārthi"],["रौद्र","Raudra"],["दुर्मति","Durmati"],["दुन्दुभि","Dundubhi"],
-  ["रुधिरोद्गारी","Rudhirodgāri"],["रक्ताक्षी","Raktākṣī"],["क्रोधन","Krodhana"],["क्षय","Kṣaya"]
-];
-
+// ---- Data: Bengali / English ----
 const TITHI = [
-  ["प्रतिपदा","Pratipada","First"],["द्वितीया","Dvitīyā","Second"],
-  ["तृतीया","Tṛtīyā","Third"],["चतुर्थी","Caturthi","Fourth"],
-  ["पञ्चमी","Pañcamī","Fifth"],["षष्ठी","Ṣaṣṭhī","Sixth"],
-  ["सप्तमी","Saptamī","Seventh"],["अष्टमी","Aṣṭamī","Eighth"],
-  ["नवमी","Navamī","Ninth"],["दशमी","Daśamī","Tenth"],
-  ["एकादशी","Ekādaśī","Eleventh"],["द्वादशी","Dvādaśī","Twelfth"],
-  ["त्रयोदशी","Trayodaśī","Thirteenth"],["चतुर्दशी","Caturdaśī","Fourteenth"],
-  ["पूर्णिमा","Pūrṇimā","Full Moon"],["प्रतिपदा","Pratipada","First"],
-  ["द्वितीया","Dvitīyā","Second"],["तृतीया","Tṛtīyā","Third"],
-  ["चतुर्थी","Caturthi","Fourth"],["पञ्चमी","Pañcamī","Fifth"],
-  ["षष्ठी","Ṣaṣṭhī","Sixth"],["सप्तमी","Saptamī","Seventh"],
-  ["अष्टमी","Aṣṭamī","Eighth"],["नवमी","Navamī","Ninth"],
-  ["दशमी","Daśamī","Tenth"],["एकादशी","Ekādaśī","Eleventh"],
-  ["द्वादशी","Dvādaśī","Twelfth"],["त्रयोदशी","Trayodaśī","Thirteenth"],
-  ["चतुर्दशी","Caturdaśī","Fourteenth"],["अमावस्या","Amāvasyā","New Moon"]
+  ['প্রতিপদ','Pratipada'],['দ্বিতীয়া','Dvitiya'],['তৃতীয়া','Tritiya'],['চতুর্থী','Chaturthi'],
+  ['পঞ্চমী','Panchami'],['ষষ্ঠী','Shashthi'],['সপ্তমী','Saptami'],['অষ্টমী','Ashtami'],
+  ['নবমী','Navami'],['দশমী','Dashami'],['একাদশী','Ekadashi'],['দ্বাদশী','Dvadashi'],
+  ['ত্রয়োদশী','Trayodashi'],['চতুর্দশী','Chaturdashi'],['পূর্ণিমা','Purnima'],
+  ['প্রতিপদ','Pratipada'],['দ্বিতীয়া','Dvitiya'],['তৃতীয়া','Tritiya'],['চতুর্থী','Chaturthi'],
+  ['পঞ্চমী','Panchami'],['ষষ্ঠী','Shashthi'],['সপ্তমী','Saptami'],['অষ্টমী','Ashtami'],
+  ['নবমী','Navami'],['দশমী','Dashami'],['একাদশী','Ekadashi'],['দ্বাদশী','Dvadashi'],
+  ['ত্রয়োদশী','Trayodashi'],['চতুর্দশী','Chaturdashi'],['অমাবস্যা','Amavasya']
 ];
 
 const NAKSHATRA = [
-  ["अश्विनी","Aśvinī","Aśvins",0],["भरणी","Bharaṇī","Yama",13.33],
-  ["कृत्तिका","Kṛttikā","Agni",26.67],["रोहिणी","Rohiṇī","Brahmā",40],
-  ["मृगशिरा","Mṛgaśirā","Soma",53.33],["आर्द्रा","Ārdrā","Rudra",66.67],
-  ["पुनर्वसु","Punarvasu","Aditi",80],["पुष्य","Puṣya","Bṛhaspati",93.33],
-  ["आश्लेषा","Āśleṣā","Sarpa",106.67],["मघा","Maghā","Pitaras",120],
-  ["पूर्वाफाल्गुनी","Pūrvā Phālgunī","Bhaga",133.33],["उत्तराफाल्गुनी","Uttarā Phālgunī","Aryaman",146.67],
-  ["हस्त","Hasta","Savitā",160],["चित्रा","Citrā","Tvaṣṭā",173.33],
-  ["स्वाती","Svātī","Vāyu",186.67],["विशाखा","Viśākhā","Indrāgni",200],
-  ["अनुराधा","Anurādhā","Mitra",213.33],["ज्येष्ठा","Jyeṣṭhā","Indra",226.67],
-  ["मूल","Mūla","Nirṛti",240],["पूर्वाषाढा","Pūrvāṣāḍhā","Āpaḥ",253.33],
-  ["उत्तराषाढा","Uttarāṣāḍhā","Viśvedevāḥ",266.67],["श्रवण","Śravaṇa","Viṣṇu",280],
-  ["धनिष्ठा","Dhaniṣṭhā","Vasavaḥ",293.33],["शतभिषा","Śatabhiṣā","Varuṇa",306.67],
-  ["पूर्वाभाद्रपदा","Pūrvābhādrapadā","Ajaikapāda",320],["उत्तराभाद्रपदा","Uttarābhādrapadā","Ahirbudhnya",333.33],
-  ["रेवती","Revatī","Pūṣan",346.67]
+  ['অশ্বিনী','Ashwini'],['ভরণী','Bharani'],['কৃত্তিকা','Krittika'],['রোহিণী','Rohini'],
+  ['মৃগশিরা','Mrigashira'],['আর্দ্রা','Ardra'],['পুনর্বসু','Punarvasu'],['পুষ্যা','Pushya'],
+  ['অশ্লেষা','Ashlesha'],['মঘা','Magha'],['পূর্বফাল্গুনী','Purva Phalguni'],['উত্তরফাল্গুনী','Uttara Phalguni'],
+  ['হস্তা','Hasta'],['চিত্রা','Chitra'],['স্বাতী','Swati'],['বিশাখা','Vishakha'],
+  ['অনুরাধা','Anuradha'],['জ্যেষ্ঠা','Jyeshtha'],['মূলা','Mula'],['পূর্বাষাঢ়া','Purvashadha'],
+  ['উত্তরাষাঢ়া','Uttarashadha'],['শ্রবণা','Shravana'],['ধনিষ্ঠা','Dhanishtha'],['শতভিষা','Shatabhisha'],
+  ['পূর্বভাদ্রপদ','Purvabhadrapada'],['উত্তরভাদ্রপদ','Uttarabhadrapada'],['রেবতী','Revati']
 ];
 
 const YOGA = [
-  ["विष्कम्भ","Viṣkambha","Inauspicious"],["प्रीति","Prīti","Auspicious"],
-  ["आयुष्मान","Āyuṣmān","Auspicious"],["सौभाग्य","Saubhāgya","Auspicious"],
-  ["शोभन","Śobhana","Auspicious"],["अतिगण्ड","Atigaṇḍa","Inauspicious"],
-  ["सुकर्मा","Sukarmā","Auspicious"],["धृति","Dhṛti","Auspicious"],
-  ["शूल","Śūla","Inauspicious"],["गण्ड","Gaṇḍa","Inauspicious"],
-  ["वृद्धि","Vṛddhi","Auspicious"],["ध्रुव","Dhruva","Auspicious"],
-  ["व्याघात","Vyāghāta","Inauspicious"],["हर्षण","Harṣaṇa","Auspicious"],
-  ["वज्र","Vajra","Inauspicious"],["सिद्धि","Siddhi","Auspicious"],
-  ["व्यतीपात","Vyatīpāta","Inauspicious"],["वरीयान","Varīyān","Auspicious"],
-  ["परिघ","Parigha","Inauspicious"],["शिव","Śiva","Auspicious"],
-  ["सिद्ध","Siddha","Auspicious"],["साध्य","Sādhya","Auspicious"],
-  ["शुभ","Śubha","Auspicious"],["शुक्ल","Śukla","Auspicious"],
-  ["ब्रह्म","Brahma","Auspicious"],["इन्द्र","Indra","Auspicious"],
-  ["वैधृति","Vaidhṛti","Inauspicious"]
+  ['বিষ্কম্ভ','Vishkambha'],['প্রীতি','Priti'],['আয়ুষ্মান','Ayushman'],['সৌভাগ্য','Saubhagya'],
+  ['শোভন','Shobhana'],['অতিগণ্ড','Atiganda'],['সুকর্মা','Sukarma'],['ধৃতি','Dhriti'],
+  ['শূল','Shula'],['গণ্ড','Ganda'],['বৃদ্ধি','Vriddhi'],['ধ্রুব','Dhruva'],
+  ['ব্যাঘাত','Vyaghata'],['হর্ষণ','Harshana'],['বজ্র','Vajra'],['সিদ্ধি','Siddhi'],
+  ['ব্যতীপাত','Vyatipata'],['বরীয়ান','Variyana'],['পরিঘ','Parigha'],['শিব','Shiva'],
+  ['সিদ্ধ','Siddha'],['সাধ্য','Sadhya'],['শুভ','Shubha'],['শুক্ল','Shukla'],
+  ['ব্রহ্ম','Brahma'],['ঐন্দ্র','Indra'],['বৈধৃতি','Vaidhriti']
 ];
 
 const KARANA = [
-  ["बव","Bava","Movable"],["बालव","Bālava","Movable"],["कौलव","Kaulava","Movable"],
-  ["तैतिल","Taitila","Movable"],["गर","Gara","Movable"],["वणिज","Vaṇija","Movable"],
-  ["विष्टि","Viṣṭi","Inauspicious — Bhadra"],["शकुनि","Śakuni","Fixed"],
-  ["चतुष्पाद","Catuṣpāda","Fixed"],["नाग","Nāga","Fixed"],["किंस्तुघ्न","Kiṁstughna","Fixed"]
-];
-
-const MASA = [
-  ["चैत्र","Caitra"],["वैशाख","Vaiśākha"],["ज्येष्ठ","Jyeṣṭha"],
-  ["आषाढ","Āṣāḍha"],["श्रावण","Śrāvaṇa"],["भाद्रपद","Bhādrapada"],
-  ["आश्विन","Āśvina"],["कार्तिक","Kārtika"],["मार्गशीर्ष","Mārgaśīrṣa"],
-  ["पौष","Pauṣa"],["माघ","Māgha"],["फाल्गुन","Phālguna"]
+  ['বব','Bava'],['বালব','Balava'],['কৌলব','Kaulava'],['তৈতিল','Taitila'],
+  ['গর','Gara'],['বণিজ','Vanija'],['বিষ্টি','Vishti (Bhadra)'],
+  ['শকুনি','Shakuni'],['চতুষ্পদ','Chatushpada'],['নাগ','Naga'],['কিন্তুঘ্ন','Kintughna']
 ];
 
 const VARA = [
-  ["रविवार","Ravivāra","Sunday","Sūrya — Sun",["#E8A030","🌞"]],
-  ["सोमवार","Somavāra","Monday","Soma — Moon",["#A8B8D8","🌙"]],
-  ["मङ्गलवार","Maṅgalavāra","Tuesday","Maṅgala — Mars",["#C96B8A","♂"]],
-  ["बुधवार","Budhavāra","Wednesday","Budha — Mercury",["#3DA898","☿"]],
-  ["गुरुवार","Guruvāra","Thursday","Bṛhaspati — Jupiter",["#F5C060","♃"]],
-  ["शुक्रवार","Śukravāra","Friday","Śukra — Venus",["#E08BA8","♀"]],
-  ["शनिवार","Śanivāra","Saturday","Śani — Saturn",["#8899AA","♄"]]
+  ['রবিবার','Sunday'],['সোমবার','Monday'],['মঙ্গলবার','Tuesday'],['বুধবার','Wednesday'],
+  ['বৃহস্পতিবার','Thursday'],['শুক্রবার','Friday'],['শনিবার','Saturday']
 ];
 
-const RAHU_KALA = [
-  [7.5,9],[6,7.5],[4.5,6],[3,4.5],[1.5,3],[10.5,12],[9,10.5]
-];
-const GULIKA = [
-  [6,7.5],[7.5,9],[9,10.5],[10.5,12],[12,13.5],[13.5,15],[15,16.5]
-];
-const YAMAGANDA = [
-  [4.5,6],[3,4.5],[1.5,3],[12,13.5],[10.5,12],[9,10.5],[7.5,9]
+// Hindu lunar months (Amanta convention, Chaitra=0)
+const HINDU_MASA = [
+  ['চৈত্র','Chaitra'],['বৈশাখ','Vaishakha'],['জ্যৈষ্ঠ','Jyeshtha'],['আষাঢ়','Ashadha'],
+  ['শ্রাবণ','Shravana'],['ভাদ্রপদ','Bhadrapada'],['আশ্বিন','Ashwina'],['কার্তিক','Kartika'],
+  ['মার্গশীর্ষ','Margashirsha'],['পৌষ','Pausha'],['মাঘ','Magha'],['ফাল্গুন','Phalguna']
 ];
 
+// Gaudiya Vaishnava months — 12 names of Vishnu, starting Kartika
+// Index aligned with HINDU_MASA index above (Chaitra=0)
+// Chaitra=Vishnu, Vaishakha=Madhusudana, ... Kartika=Damodara, Margashirsha=Keshava, ...
+const VAISHNAVA_BY_HINDU_IDX = [
+  ['বিষ্ণু','Vishnu'],          // Chaitra
+  ['মধুসূদন','Madhusudana'],    // Vaishakha
+  ['ত্রিবিক্রম','Trivikrama'],  // Jyeshtha
+  ['বামন','Vamana'],            // Ashadha
+  ['শ্রীধর','Shridhara'],       // Shravana
+  ['হৃষীকেশ','Hrishikesha'],    // Bhadrapada
+  ['পদ্মনাভ','Padmanabha'],     // Ashwina
+  ['দামোদর','Damodara'],        // Kartika
+  ['কেশব','Keshava'],           // Margashirsha
+  ['নারায়ণ','Narayana'],        // Pausha
+  ['মাধব','Madhava'],           // Magha
+  ['গোবিন্দ','Govinda']         // Phalguna
+];
+
+// Bengali (Bangabda) solar months — index 0 = Baishakh
+const BANGLA_MASA = [
+  ['বৈশাখ','Baishakh'],['জ্যৈষ্ঠ','Jaishtha'],['আষাঢ়','Ashadh'],['শ্রাবণ','Shrabon'],
+  ['ভাদ্র','Bhadro'],['আশ্বিন','Ashwin'],['কার্তিক','Kartik'],['অগ্রহায়ণ','Ogrohayon'],
+  ['পৌষ','Poush'],['মাঘ','Magh'],['ফাল্গুন','Falgun'],['চৈত্র','Choitro']
+];
+
+// Festivals keyed by paksha-monthIdx(1..12, Chaitra=1)-tithi(1..15)
+// Both Hindu and Gaudiya Vaishnava festivals
 const FESTIVALS = {
-  "S-1-1": ["गुडी पडवा / उगादि","Guḍī Paḍvā — Lunar New Year"],
-  "S-2-3": ["गणेश चतुर्थी (छोटी)","Gaṇeśa Caturthi — Vinayaka Chaturthi"],
-  "S-3-5": ["नाग पञ्चमी","Nāga Pañcamī — Serpent Festival"],
-  "S-5-3": ["हरतालिका तीज","Haritālikā Tīja"],
-  "S-5-4": ["गणेश चतुर्थी","Gaṇeśa Caturthi — Mahotsava"],
-  "S-5-11": ["पद्मा एकादशी","Padmā Ekādaśī"],
-  "S-5-15": ["कजरी पूर्णिमा","Kajari Pūrṇimā"],
-  "S-6-8": ["जन्माष्टमी","Janmāṣṭamī — Birth of Śrī Kṛṣṇa"],
-  "K-6-8": ["Kālāṣṭamī","Kālāṣṭamī"],
-  "S-7-10": ["दशहरा","Daśaharā — Vijaya Daśamī"],
-  "S-7-15": ["शरद पूर्णिमा","Śarada Pūrṇimā — Kojāgiri"],
-  "S-8-1": ["प्रतिपदा (दीपावली 1)","Dīpāvalī — Pratipada"],
-  "K-8-13": ["धनतेरस","Dhanteras — Dhanvantari Trayodaśī"],
-  "K-8-14": ["नरक चतुर्दशी","Naraka Caturdaśī — Choti Diwali"],
-  "K-8-30": ["दीपावली / अमावस्या","Dīpāvalī — Lakṣmī Pūjā"],
-  "S-9-2": ["भाई दूज","Bhāī Dūj — Yama Dvitīyā"],
-  "S-9-11": ["देव उठनी एकादशी","Dev Uṭhanī Ekādaśī"],
-  "S-9-15": ["कार्तिक पूर्णिमा","Kārtika Pūrṇimā — Guru Nānak Jayantī"],
-  "S-10-11": ["मोक्षदा एकादशी","Mokṣadā Ekādaśī — Gītā Jayantī"],
-  "S-11-11": ["षटतिला एकादशी","Ṣaṭtilā Ekādaśī"],
-  "S-11-15": ["माघ पूर्णिमा","Māgha Pūrṇimā"],
-  "S-12-14": ["महाशिवरात्रि","Mahāśivarātri — Night of Śiva"],
-  "K-1-8": ["अष्टमी","Durgāṣṭamī"],
-  "K-1-9": ["नवमी","Rāma Navamī"],
-  "K-1-11": ["कामदा एकादशी","Kāmadā Ekādaśī"],
-  "S-1-3": ["अक्षय तृतीया","Akṣaya Tṛtīyā — Most Auspicious Day"],
-  "K-2-11": ["मोहिनी एकादशी","Mohinī Ekādaśī"],
-  "S-2-15": ["वैशाख पूर्णिमा — बुद्ध पूर्णिमा","Vaiśākha Pūrṇimā — Buddha Jayantī"],
-  "K-3-10": ["गङ्गा दशहरा","Gaṅgā Daśaharā"],
-  "K-3-11": ["निर्जला एकादशी","Nirjalā Ekādaśī — Most Sacred Ekādaśī"],
-  "S-4-2": ["रथ यात्रा","Ratha Yātrā — Chariot Festival"],
-  "S-4-11": ["देवशयनी एकादशी","Devaśayanī Ekādaśī — Āṣāḍha Śuklā"],
-  "S-4-15": ["गुरु पूर्णिमा","Guru Pūrṇimā — Vyāsa Pūjā"],
-
-  // ---- GAUDIYA VAISHNAVA FESTIVALS ----
-  // Phālguna Śukla 15 = Gaura Pūrṇimā (most sacred — Gaurabda New Year)
-  "S-12-15": ["🌕 গৌর পূর্ণিমা — Gaura Pūrṇimā","Appearance of Śrī Caitanya Mahāprabhu · Gaurabda New Year · Fast until moonrise"],
-  // Māgha Śukla 13 = Nityananda Trayodaśī
-  "S-11-13": ["🎉 নিত্যানন্দ ত্রয়োদশী — Nityananda Trayodaśī","Appearance of Śrī Nityananda Prabhu · Fast until noon"],
-  // Caitra Kṛṣṇa 9 = Śrī Rāma Navamī
-  "K-1-9":  ["🏹 রাম নবমী — Rāma Navamī","Appearance of Śrī Rāmacandra · Fast until sunset"],
-  // Vaiśākha Śukla 3 = Akṣaya Tṛtīyā — also Śrī Madhvācārya appearance
-  // Āṣāḍha Śukla 2 = Ratha Yātrā (already present above, enriched)
-  // Āṣāḍha Kṛṣṇa 9 = Śrīla Bhaktivinoda Ṭhākura disappearance
-  "K-4-9":  ["📿 ভক্তিবিনোদ ঠাকুর তিরোভাব","Śrīla Bhaktivinoda Ṭhākura Disappearance Day"],
-  // Śrāvaṇa Kṛṣṇa 8 = Janmāṣṭamī (Gaudiya: fast until midnight)
-  "K-5-8":  ["🪈 জন্মাষ্টমী — Janmāṣṭamī","Appearance of Śrī Kṛṣṇa · Fast until midnight · Most sacred for Gauḍīyas"],
-  // Śrāvaṇa Kṛṣṇa 9 = Vyāsa Pūjā / Śrī Kṛṣṇa Janmāṣṭamī (smārta) — also Nandotsava
-  "K-5-9":  ["🎊 नन्दोत्सव — Nandotsava","Nandotsava · Celebration of Kṛṣṇa's birth by Nanda Mahārāja"],
-  // Bhādrapada Śukla 6 = Śrīla Bhaktisiddhānta Sarasvatī Ṭhākura appearance
-  "S-6-6":  ["🌟 भक्तिसिद्धान्त सरस्वती — Bhaktisiddhānta Sarasvatī","Śrīla Bhaktisiddhānta Sarasvatī Ṭhākura Appearance Day"],
-  // Āśvina Śukla 1 = Śaradīya Nava-Durgā begins
-  // Kārtika masa = Dāmodara māsa (month of Dāmodara)
-  // Kārtika Śukla 15 = Rāsa Pūrṇimā
-  "S-8-15": ["🌕 রাস পূর্ণিমা — Rāsa Pūrṇimā","Śrī Kṛṣṇa's Rāsa-līlā · Kārtika Pūrṇimā · Month of Dāmodara ends"],
-  // Mārgaśīrṣa Śukla 11 = Mokṣadā Ekādaśī = Gītā Jayantī — most important Ekādaśī
-  "S-10-11": ["📖 গীতা জয়ন্তী — Gītā Jayantī","Bhagavad-gītā spoken by Śrī Kṛṣṇa · Mokṣadā Ekādaśī — Full fast"],
-  // Pauṣa Kṛṣṇa 8 = Śrīla Madhvācārya appearance
-  // Māgha Śukla 5 = Śrī Advaita Ācārya appearance
-  "S-11-5": ["🌸 অদ্বৈত আচার্য — Advaita Ācārya","Śrī Advaita Ācārya Appearance Day"],
-  // Caitra Śukla 9 = Śrī Rāmanavamī
-  "S-1-9":  ["🏹 রাম নবমী — Rāma Navamī","Appearance of Śrī Rāmacandra · Caitra Śukla Navamī"],
-  // Vaiśākha Kṛṣṇa 15 = Śrī Śaṅkarācārya appearance (also noted in Gauḍīya context)
-  // Jyeṣṭha Śukla 10 = Gaṅgā Daśaharā
-  // Āṣāḍha Kṛṣṇa 3 = Śrīla Śyāmānanda Prabhu disappearance
-  // Śrāvaṇa Śukla 11 = Putrādā Ekādaśī
-  "S-5-15": ["🌕 গুরু পূর্ণিমা — Guru Pūrṇimā","Vyāsa Pūjā · Honour the spiritual master · Śrāvaṇa Pūrṇimā"],
-  // Kārtika Kṛṣṇa 13 = Dhanteras also = Dhanvantari — some Gauḍīyas observe
-  // Mārgaśīrṣa Kṛṣṇa 13 = Śrīla Bhaktisiddhānta disappearance
-  "K-10-13": ["📿 भक्तिसिद्धान्त — Bhaktisiddhānta","Śrīla Bhaktisiddhānta Sarasvatī Ṭhākura Disappearance Day"],
-  // Pauṣa Kṛṣṇa 13 = Śrīla Bhaktivinoda Ṭhākura appearance
-  "K-10-2": ["🌟 ভক্তিবিনোদ ঠাকুর আবির্ভাব","Śrīla Bhaktivinoda Ṭhākura Appearance Day"],
-  // Phālguna Kṛṣṇa 14 = Śivarātri — Gauḍīyas observe as Śiva's fast
-  // Phālguna Śukla 5 = Śrī Advaita Ācārya appearance (some reckon)
-  // Caitra Kṛṣṇa 15 = Appearance of Śrīmatī Rādhārāṇī? No — Rādhāṣṭamī
-  // Bhādrapada Śukla 8 = Śrī Rādhāṣṭamī — most important Vaiṣṇava festival
-  "S-6-8":  ["🌺 রাধাষ্টমী — Rādhāṣṭamī","Appearance of Śrīmatī Rādhārāṇī · Fast until noon · Most sacred day for Gauḍīyas"],
-  // Kārtika Śukla 11 = Prabodhini Ekādaśī = Dev Uṭhani
-  "S-8-11": ["📿 প্রবোধিনী একাদশী — Prabodhini Ekādaśī","Dev Uṭhani · Viṣṇu awakens · Begin auspicious activities · Full fast"],
+  'S-1-1':  ['গুড়ি পড়োয়া / উগাদি','Lunar New Year'],
+  'S-1-3':  ['অক্ষয় তৃতীয়া','Akshaya Tritiya'],
+  'S-1-9':  ['রাম নবমী','Rama Navami'],
+  'S-2-15': ['বুদ্ধ পূর্ণিমা','Buddha Purnima'],
+  'S-4-2':  ['রথযাত্রা','Ratha Yatra'],
+  'S-4-11': ['দেবশয়নী একাদশী','Devashayani Ekadashi'],
+  'S-4-15': ['গুরু পূর্ণিমা','Guru Purnima'],
+  'S-5-15': ['রাখী পূর্ণিমা','Raksha Bandhan'],
+  'K-5-8':  ['জন্মাষ্টমী','Krishna Janmashtami'],
+  'K-5-9':  ['নন্দোৎসব','Nandotsava'],
+  'S-6-4':  ['গণেশ চতুর্থী','Ganesh Chaturthi'],
+  'S-6-6':  ['ভক্তিসিদ্ধান্ত সরস্বতী আবির্ভাব','Bhaktisiddhanta Saraswati Appearance'],
+  'S-7-10': ['বিজয়া দশমী','Vijaya Dashami'],
+  'S-7-15': ['কোজাগরী লক্ষ্মী পূর্ণিমা','Kojagari Lakshmi Purnima'],
+  'K-7-13': ['ধনতেরাস','Dhanteras'],
+  'K-7-14': ['নরক চতুর্দশী','Naraka Chaturdashi'],
+  'K-7-30': ['দীপাবলি / কালী পূজা','Diwali / Kali Puja'],
+  'S-8-2':  ['ভাইফোঁটা','Bhai Phonta'],
+  'S-8-11': ['উত্থান একাদশী','Utthana Ekadashi'],
+  'S-8-15': ['রাস পূর্ণিমা','Rasa Purnima'],
+  'S-9-11': ['মোক্ষদা একাদশী','Mokshada Ekadashi · Gita Jayanti'],
+  'S-10-5': ['বসন্ত পঞ্চমী / সরস্বতী পূজা','Saraswati Puja'],
+  'K-11-14':['মহাশিবরাত্রি','Mahashivaratri'],
+  'S-11-13':['নিত্যানন্দ ত্রয়োদশী','Nityananda Trayodashi'],
+  'S-12-15':['গৌর পূর্ণিমা / দোলযাত্রা','Gaura Purnima / Holi'],
+  'K-12-8': ['ভক্তিবিনোদ ঠাকুর তিরোভাব','Bhaktivinoda Thakura Disappearance']
 };
 
-// Gaudiya Ekadashi names (by masa + paksha)
-const GAUDIYA_EKADASHI = {
-  "S-1": "Kāmadā Ekādaśī",  "K-1": "Varūthinī Ekādaśī",
-  "S-2": "Mohinī Ekādaśī",   "K-2": "Aparā Ekādaśī",
-  "S-3": "Nirjalā Ekādaśī",  "K-3": "Yoginī Ekādaśī",
-  "S-4": "Śayanī Ekādaśī",   "K-4": "Kāmikā Ekādaśī",
-  "S-5": "Putrādā Ekādaśī",  "K-5": "Ajā Ekādaśī",
-  "S-6": "Padmā Ekādaśī",    "K-6": "Indirā Ekādaśī",
-  "S-7": "Pāśāṅkuśā Ekādaśī","K-7": "Ramā Ekādaśī",
-  "S-8": "Prabodhini Ekādaśī","K-8": "Utpannā Ekādaśī",
-  "S-9": "Mokṣadā Ekādaśī",  "K-9": "Saphalā Ekādaśī",
-  "S-10":"Putrādā Ekādaśī",  "K-10":"Ṣaṭtilā Ekādaśī",
-  "S-11":"Jayā Ekādaśī",     "K-11":"Vijayā Ekādaśī",
-  "S-12":"Āmalakī Ekādaśī",  "K-12":"Pāpamocani Ekādaśī",
-};
+/* ---------- Astronomy: Meeus simplified ---------- */
+const DEG = Math.PI / 180;
+const norm360 = a => ((a % 360) + 360) % 360;
 
-// ---- ASTRONOMY ENGINE ----
-
-function toJD(date) {
-  let y = date.getUTCFullYear(), m = date.getUTCMonth()+1, d = date.getUTCDate();
-  let h = date.getUTCHours() + date.getUTCMinutes()/60 + date.getUTCSeconds()/3600;
-  if(m <= 2) { y--; m += 12; }
-  let A = Math.floor(y/100), B = 2 - A + Math.floor(A/4);
-  return Math.floor(365.25*(y+4716)) + Math.floor(30.6001*(m+1)) + d + h/24 + B - 1524.5;
+function jdFromDate(d){
+  // d: JS Date (UTC). Julian Day at given instant.
+  return d.getTime() / 86400000 + 2440587.5;
 }
 
-function jdToDate(jd) {
-  let z = Math.floor(jd + 0.5), f = (jd + 0.5) - z;
-  let A = z < 2299161 ? z : (() => { let a=Math.floor((z-1867216.25)/36524.25); return z+1+a-Math.floor(a/4); })();
-  let B = A+1524, C = Math.floor((B-122.1)/365.25), D = Math.floor(365.25*C), E = Math.floor((B-D)/30.6001);
-  let day = B-D-Math.floor(30.6001*E), month = E<14?E-1:E-13, year = month>2?C-4716:C-4715;
-  return new Date(Date.UTC(year, month-1, day, Math.floor(f*24), Math.floor((f*24%1)*60)));
+// Sun apparent geocentric longitude (deg)
+function sunLong(jd){
+  const T = (jd - 2451545.0) / 36525;
+  const L0 = norm360(280.46646 + 36000.76983*T + 0.0003032*T*T);
+  const M = norm360(357.52911 + 35999.05029*T - 0.0001537*T*T);
+  const C = (1.914602 - 0.004817*T - 0.000014*T*T) * Math.sin(M*DEG)
+          + (0.019993 - 0.000101*T) * Math.sin(2*M*DEG)
+          + 0.000289 * Math.sin(3*M*DEG);
+  return norm360(L0 + C);
 }
 
-function sunLongitude(jd) {
-  let T = (jd - 2451545.0) / 36525;
-  let L0 = 280.46646 + 36000.76983*T + 0.0003032*T*T;
-  let M = (357.52911 + 35999.05029*T - 0.0001537*T*T) * DEG;
-  let C = (1.914602 - 0.004817*T - 0.000014*T*T)*Math.sin(M)
-        + (0.019993 - 0.000101*T)*Math.sin(2*M)
-        + 0.000289*Math.sin(3*M);
-  let sunLon = L0 + C;
-  let omega = (125.04 - 1934.136*T) * DEG;
-  sunLon = sunLon - 0.00569 - 0.00478*Math.sin(omega);
-  return ((sunLon % 360) + 360) % 360;
+// Moon ecliptic longitude (deg) — simplified
+function moonLong(jd){
+  const T = (jd - 2451545.0) / 36525;
+  const Lp = 218.3164477 + 481267.88123421*T - 0.0015786*T*T;
+  const D  = 297.8501921 + 445267.1114034*T - 0.0018819*T*T;
+  const M  = 357.5291092 + 35999.0502909*T  - 0.0001536*T*T;
+  const Mp = 134.9633964 + 477198.8675055*T + 0.0087414*T*T;
+  const F  = 93.2720950  + 483202.0175233*T - 0.0036539*T*T;
+  const s = x => Math.sin(x*DEG);
+  let lon = Lp
+    + 6.288774 * s(Mp)
+    + 1.274027 * s(2*D - Mp)
+    + 0.658314 * s(2*D)
+    + 0.213618 * s(2*Mp)
+    - 0.185116 * s(M)
+    - 0.114332 * s(2*F)
+    + 0.058793 * s(2*D - 2*Mp)
+    + 0.057066 * s(2*D - M - Mp)
+    + 0.053322 * s(2*D + Mp)
+    + 0.045758 * s(2*D - M)
+    - 0.040923 * s(M - Mp)
+    - 0.034720 * s(D)
+    - 0.030383 * s(M + Mp);
+  return norm360(lon);
 }
 
-function moonLongitude(jd) {
-  let T = (jd - 2451545.0) / 36525;
-  let Lp = 218.3164477 + 481267.88123421*T - 0.0015786*T*T + T*T*T/538841;
-  let D = (297.8501921 + 445267.1114034*T - 0.1851675*T*T + T*T*T/545868) * DEG;
-  let M = (357.5291092 + 35999.0502909*T - 0.0001536*T*T) * DEG;
-  let Mp = (134.9633964 + 477198.8675055*T + 0.0087414*T*T + T*T*T/69699) * DEG;
-  let F = (93.2720950 + 483202.0175233*T - 0.0036539*T*T) * DEG;
-  let sigma = 6288774*Math.sin(Mp)
-    + 1274027*Math.sin(2*D-Mp) + 658314*Math.sin(2*D)
-    + 213618*Math.sin(2*Mp) - 185116*Math.sin(M)
-    - 114332*Math.sin(2*F) + 58793*Math.sin(2*D-2*Mp)
-    + 57066*Math.sin(2*D-M-Mp) + 53322*Math.sin(2*D+Mp)
-    + 45758*Math.sin(2*D-M) - 40923*Math.sin(M-Mp)
-    - 34720*Math.sin(D) - 30383*Math.sin(M+Mp)
-    + 15327*Math.sin(2*D-2*F) - 12528*Math.sin(Mp+2*F)
-    + 10980*Math.sin(Mp-2*F);
-  let moonLon = Lp + sigma/1000000;
-  return ((moonLon % 360) + 360) % 360;
+// Lahiri Ayanamsa (deg)
+function ayanamsa(jd){
+  const T = (jd - 2451545.0) / 36525;
+  // Approximate Lahiri
+  return 23.85 + 50.29/3600 * (jd - 2451545.0)/365.25 - 0; // good enough
 }
 
-// Ayanamsha (Lahiri)
-function ayanamsha(jd) {
-  let T = (jd - 2451545.0) / 36525;
-  return 23.85 + 0.013004*T;
-}
+function siderealMoon(jd){ return norm360(moonLong(jd) - ayanamsa(jd)); }
+function siderealSun(jd){ return norm360(sunLong(jd) - ayanamsa(jd)); }
 
-function siderealSun(jd) { return ((sunLongitude(jd) - ayanamsha(jd)) % 360 + 360) % 360; }
-function siderealMoon(jd) { return ((moonLongitude(jd) - ayanamsha(jd)) % 360 + 360) % 360; }
+// Compute panchang for a given JS Date (treat at local sunrise ~ 6:00 local for daily indices)
+function computePanchang(date){
+  // Use 06:00 local as "sunrise proxy" for daily tithi assignment
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 6, 0, 0);
+  const jd = jdFromDate(new Date(d.getTime() - d.getTimezoneOffset()*60000));
+  const sunL = sunLong(jd);
+  const moonL = moonLong(jd);
+  const sunS = siderealSun(jd);
+  const moonS = siderealMoon(jd);
 
-// Sunrise / Sunset
-function sunriseSunset(date, lat, lon) {
-  let jd = toJD(date);
-  let n = jd - 2451545.0;
-  let Jstar = n - lon/360;
-  let M = (357.5291 + 0.98560028*Jstar) * DEG;
-  let C = 1.9148*Math.sin(M) + 0.0200*Math.sin(2*M) + 0.0003*Math.sin(3*M);
-  let lambda = ((280.4665 + 0.9856474*Jstar + C + 180) % 360) * DEG;
-  let delta = Math.asin(Math.sin((-23.45)*DEG)*Math.cos(lambda));
-  let cosH = (Math.sin(-0.83*DEG) - Math.sin(lat*DEG)*Math.sin(delta)) / (Math.cos(lat*DEG)*Math.cos(delta));
-  if(Math.abs(cosH) > 1) return null;
-  let H = Math.acos(cosH) * RAD;
-  let Jtransit = 2451545.0 + Jstar + 0.0053*Math.sin(M) - 0.0069*Math.sin(2*lambda);
-  let Jrise = Jtransit - H/360;
-  let Jset = Jtransit + H/360;
-  return { rise: jdToDate(Jrise), set: jdToDate(Jset) };
-}
+  // Tithi: 12° each, 0..29
+  const diff = norm360(moonL - sunL);
+  const tithiIdx = Math.floor(diff / 12); // 0..29
+  // Paksha
+  const paksha = tithiIdx < 15 ? 'S' : 'K';
 
-function getTithi(jd) {
-  let sun = siderealSun(jd), moon = siderealMoon(jd);
-  let diff = ((moon - sun) % 360 + 360) % 360;
-  return Math.floor(diff / 12); // 0-29
-}
+  // Nakshatra: 360/27 = 13.333°, by sidereal moon
+  const nakIdx = Math.floor(moonS / (360/27)) % 27;
 
-function getNakshatra(jd) {
-  let moon = siderealMoon(jd);
-  return Math.floor(moon / (360/27)); // 0-26
-}
+  // Yoga: (sun+moon)/13.333
+  const yogaIdx = Math.floor(norm360(sunS + moonS) / (360/27)) % 27;
 
-function getYoga(jd) {
-  let sun = siderealSun(jd), moon = siderealMoon(jd);
-  let combined = ((sun + moon) % 360 + 360) % 360;
-  return Math.floor(combined / (360/27)) % 27;
-}
+  // Karana: 11 series, two per tithi
+  const karHalf = Math.floor(diff / 6); // 0..59
+  // Karana mapping:
+  // 1st half of tithi 1 = Kintughna (10), then 7 movable cycle x 8 times,
+  // last 3 = Shakuni(7), Chatushpada(8), Naga(9)
+  let karIdx;
+  if (karHalf === 0) karIdx = 10;          // Kintughna
+  else if (karHalf >= 57) karIdx = karHalf - 57 + 7; // 57=Shakuni,58=Chatushpada,59=Naga
+  else karIdx = ((karHalf - 1) % 7);       // 0..6 movable
 
-function getKarana(jd) {
-  let tithi = getTithi(jd);
-  let halfTithi = Math.floor(((siderealMoon(jd) - siderealSun(jd) + 360) % 360) / 6);
-  if(halfTithi === 0) return 10; // Kimstughna
-  if(halfTithi === 57) return 7; // Shakuni
-  if(halfTithi === 58) return 8; // Chatushpada
-  if(halfTithi === 59) return 9; // Naga
-  return (halfTithi - 1) % 7;
-}
+  // Vara
+  const varaIdx = date.getDay();
 
-function getMasa(jd) {
-  let sun = siderealSun(jd);
-  // Masa based on sun's rashi at start of lunar month
-  let moon = siderealMoon(jd);
-  let sunRashi = Math.floor(sun / 30);
-  return sunRashi; // Amanta: masa corresponds to sun sign at new moon
-}
+  // Hindu lunar month (Amanta): determined by sidereal sun position around new moon
+  // Simple approx: month index = solar nakshatra-pada heuristic via sidereal sun
+  // Use: month starts when sun is in corresponding rashi (Mesha=0 -> Chaitra=0)
+  const rashi = Math.floor(sunS / 30) % 12; // 0..11, Mesha=0
+  // Chaitra begins when Sun is in Meena (11) and Krishna paksha,
+  // and Sun in Mesha (0) during Shukla. Approximate: hindu month = rashi
+  const hMonthIdx = rashi;
 
-function getMasaFromSunMoon(jd) {
-  // True lunar masa: count new moons from Chaitra
-  // Chaitra starts when sun is in Mesha (Aries)
-  // Simple approximation: use sun longitude to determine masa
-  let sun = siderealSun(jd);
-  // Mesha starts ~April 14; months go by 30° increments
-  // Shift so Mesha = 0: Chaitra
-  let masaIdx = Math.floor(sun / 30) % 12;
-  return masaIdx;
-}
+  // Bangla solar month: Bangla year starts ~14 April (Pohela Boishakh)
+  // Use date-based mapping
+  const bMonthIdx = banglaMonthIdx(date);
 
-function getPaksha(tithiIndex) {
-  return tithiIndex < 15 ? "Śukla" : "Kṛṣṇa";
-}
+  // Bangla year (Bangabda)
+  const bYear = banglaYear(date);
 
-function getSamvatsara(year) {
-  // Vikrama Samvat: VS year = CE year + 57 (approx, before Chaitra)
-  // Samvatsara cycle: (VS - 1) % 60
-  let vs = year + 57 - 1;
-  return vs % 60;
-}
-
-// ---- GAURABDA (গৌরাব্দ) ----
-// Gaurabda 1 = Śrī Caitanya Mahāprabhu's birth
-// Born: Phālguna Śukla Pūrṇimā, CE 18 Feb 1486
-// Gaurabda year starts at Gaura Pūrṇimā (Phālguna Śukla 15)
-// For a given Gregorian date, find Gaurabda year:
-//   Gaurabda = CE_year - 1486 + 1 = CE_year - 1485
-//   BUT the year turns at Gaura Pūrṇimā (~March), so from Jan–March we may be in previous Gaurabda
-function getGaurabda(date, masaIdx, paksha, tithiInPaksha) {
-  // masaIdx: 0=Caitra…11=Phālguna
-  // Gaurabda year increments at Phālguna Pūrṇimā (masa=11, Śukla, tithi=15)
-  let ce = date.getUTCFullYear();
-  // Base: Gaurabda = CE - 1485
-  // Before Gaura Pūrṇimā (Phālguna Śukla 15) in a given CE year → still previous Gaurabda
-  // Phālguna = masa index 11; the new Gaurabda year starts on that Pūrṇimā day
-  // Approximate: if masa < 11 (i.e. Caitra thru Māgha already past Gaura Purnima), same year
-  // Actually simpler: Gaura Purnima falls ~March each year.
-  // If current masa is Māgha (10) or earlier in the cycle before Phālguna, we're in CE year's Gaurabda.
-  // If masa = Phālguna (11) and paksha = Kṛṣṇa (dark half) — still previous Gaurabda year
-  // Gaurabda year starts at Śukla Pratipada of Phālguna? No — it starts exactly at Gaura Pūrṇimā.
-  // Simplest robust rule used by ISKCON calendar:
-  //   Gaurabda = CE year - 1485 if date >= Gaura Purnima of that CE year
-  //   Gaurabda = CE year - 1486 if date < Gaura Purnima of that CE year
-  // We approximate: Gaura Purnima falls in March. If month < 3 OR (month == 3 && day < 14), previous.
-  let m = date.getUTCMonth(); // 0=Jan
-  let gaurabda;
-  if (m < 2) {
-    // Jan, Feb → before Gaura Purnima → previous Gaurabda
-    gaurabda = ce - 1486;
-  } else if (m === 2) {
-    // March: check if we're past Phālguna Pūrṇimā
-    // Use tithi: if masa=Phālguna(11) Śukla 15 has passed, new year started
-    if (masaIdx === 11 && paksha === "Śukla" && tithiInPaksha >= 15) {
-      gaurabda = ce - 1485;
-    } else if (masaIdx === 11 && paksha === "Kṛṣṇa") {
-      gaurabda = ce - 1485; // dark half of Phālguna is after Purnima
-    } else {
-      gaurabda = ce - 1486; // still in Māgha or early Phālguna
-    }
-  } else {
-    // April onwards → Gaura Purnima has passed
-    gaurabda = ce - 1485;
-  }
-  return gaurabda;
-}
-
-// Gaurabda masa names (Gaudiya Vaishnava tradition uses same Sanskrit masa names)
-// The Gaurabda year begins at Gaura Pūrṇimā (Phālguna Śukla 15)
-// Masa sequence from new year: Caitra, Vaiśākha, … Phālguna
-// Same as standard, year boundary is different
-
-function formatTime(date, tz) {
-  if(!date) return "—";
-  return date.toLocaleTimeString('en-IN', {
-    hour: '2-digit', minute: '2-digit', hour12: true, timeZone: tz
-  });
-}
-
-function toGhati(date, refDate) {
-  // 1 ghati = 24 minutes; 60 ghatis = 1 day
-  if(!date || !refDate) return "—";
-  let diffMin = (date - refDate) / 60000;
-  let gh = Math.floor(diffMin / 24);
-  let pal = Math.floor((diffMin % 24) / 0.4);
-  return `${gh} Ghaṭī ${pal} Pala`;
-}
-
-function calcMuhurtas(sunrise, sunset, vara) {
-  if(!sunrise || !sunset) return {};
-  let dayLen = sunset - sunrise; // ms
-  let segment = dayLen / 8; // 1/8 of day
-
-  let rahuS = RAHU_KALA[vara][0], rahuE = RAHU_KALA[vara][1];
-  let gulikaS = GULIKA[vara][0], gulikaE = GULIKA[vara][1];
-  let yamaS = YAMAGANDA[vara][0], yamaE = YAMAGANDA[vara][1];
-
-  function fromHours(h) {
-    return new Date(sunrise.getTime() + ((h - 6) / 24) * 24 * 3600000);
-  }
-
-  // Abhijit: middle of day
-  let midday = new Date((sunrise.getTime() + sunset.getTime()) / 2);
-  let abhijitStart = new Date(midday.getTime() - 24*60000);
-  let abhijitEnd = new Date(midday.getTime() + 24*60000);
-
-  // Amrita kala: depends on nakshatra — simplified
-  let amritaStart = new Date(sunrise.getTime() + segment * 2);
-  let amritaEnd = new Date(amritaStart.getTime() + 48*60000);
+  // Day of Bangla month
+  const bDay = banglaDay(date);
 
   return {
-    rahu: { s: fromHours(rahuS), e: fromHours(rahuE) },
-    gulika: { s: fromHours(gulikaS), e: fromHours(gulikaE) },
-    yama: { s: fromHours(yamaS), e: fromHours(yamaE) },
-    abhijit: { s: abhijitStart, e: abhijitEnd },
-    amrita: { s: amritaStart, e: amritaEnd },
-    shubha: { s: new Date(sunrise.getTime() + segment*4), e: new Date(sunrise.getTime() + segment*5) }
+    tithiIdx, paksha, nakIdx, yogaIdx, karIdx, varaIdx,
+    hMonthIdx, bMonthIdx, bYear, bDay
   };
 }
 
-function getMoonPhaseName(tithiIndex) {
-  let phases = [
-    ["🌒","Waxing Crescent","शुक्ल पक्ष आरम्भ"],
-    ["🌒","Waxing Crescent","शुक्ल द्वितीया"],
-    ["🌒","Waxing Crescent","शुक्ल तृतीया"],
-    ["🌓","First Quarter","प्रथम चतुर्थ"],
-    ["🌔","Waxing Gibbous","शुक्ल पञ्चमी"],
-    ["🌔","Waxing Gibbous","शुक्ल षष्ठी"],
-    ["🌔","Waxing Gibbous","शुक्ल सप्तमी"],
-    ["🌕","Full Moon Approach","शुक्ल अष्टमी"],
-    ["🌕","Waxing Gibbous","शुक्ल नवमी"],
-    ["🌕","Waxing Gibbous","शुक्ल दशमी"],
-    ["🌕","Waxing Gibbous","शुक्ल एकादशी"],
-    ["🌕","Nearly Full","शुक्ल द्वादशी"],
-    ["🌕","Nearly Full","शुक्ल त्रयोदशी"],
-    ["🌕","Nearly Full","शुक्ल चतुर्दशी"],
-    ["🌕","Full Moon","पूर्णिमा"],
-    ["🌖","Waning Gibbous","कृष्ण प्रतिपदा"],
-    ["🌖","Waning Gibbous","कृष्ण द्वितीया"],
-    ["🌖","Waning Gibbous","कृष्ण तृतीया"],
-    ["🌗","Last Quarter","कृष्ण चतुर्थी"],
-    ["🌗","Waning Crescent","कृष्ण पञ्चमी"],
-    ["🌘","Waning Crescent","कृष्ण षष्ठी"],
-    ["🌘","Waning Crescent","कृष्ण सप्तमी"],
-    ["🌘","Waning Crescent","कृष्ण अष्टमी"],
-    ["🌑","Dark Moon Approach","कृष्ण नवमी"],
-    ["🌑","Dark Moon","कृष्ण दशमी"],
-    ["🌑","Dark Moon","कृष्ण एकादशी"],
-    ["🌑","Dark Moon","कृष्ण द्वादशी"],
-    ["🌑","Dark Moon","कृष्ण त्रयोदशी"],
-    ["🌑","New Moon Eve","कृष्ण चतुर्दशी"],
-    ["🌑","New Moon","अमावस्या"],
-  ];
-  return phases[tithiIndex] || ["🌙","—","—"];
-}
+// ---- Bangla calendar helpers (civil/revised, approx) ----
+// Months begin (Gregorian): Baishakh ~Apr 14, Jaishtha ~May 15, Ashadh ~Jun 15,
+// Shrabon ~Jul 16, Bhadro ~Aug 16, Ashwin ~Sep 16, Kartik ~Oct 17,
+// Ogrohayon ~Nov 16, Poush ~Dec 16, Magh ~Jan 14, Falgun ~Feb 13, Choitro ~Mar 15
+const BMONTH_STARTS = [
+  [4,14],[5,15],[6,15],[7,16],[8,16],[9,16],
+  [10,17],[11,16],[12,16],[1,14],[2,13],[3,15]
+];
 
-// ---- UI RENDERING ----
-
-let currentDate = new Date();
-let userLat = null, userLon = null, userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-function changeDay(delta) {
-  currentDate = new Date(currentDate.getTime() + delta * 86400000);
-  renderPanchang();
-}
-function goToday() { currentDate = new Date(); renderPanchang(); }
-
-function renderPanchang() {
-  let jd = toJD(currentDate);
-  let vara = currentDate.getDay(); // 0=Sun
-
-  // Sunrise / Sunset
-  let lat = userLat || 28.6139, lon = userLon || 77.2090; // Default Delhi
-  let solar = sunriseSunset(currentDate, lat, lon);
-  let sunrise = solar ? solar.rise : null;
-  let sunset = solar ? solar.set : null;
-
-  // Use sunrise JD for all calculations (day starts at sunrise)
-  let sunriseJD = sunrise ? toJD(sunrise) : jd;
-
-  let tithi = getTithi(sunriseJD);
-  let nakIdx = getNakshatra(sunriseJD);
-  let yogaIdx = getYoga(sunriseJD);
-  let karanaIdx = getKarana(sunriseJD);
-  let masaIdx = getMasaFromSunMoon(sunriseJD);
-  let paksha = getPaksha(tithi);
-  let samIdx = getSamvatsara(currentDate.getUTCFullYear());
-  let moon = getMoonPhaseName(tithi);
-  let muhurtas = calcMuhurtas(sunrise, sunset, vara);
-
-  // Tithi index within paksha (1-15)
-  let tithiInPaksha = (tithi % 15) + 1;
-  // But show 15th as Purnima/Amavasya
-  let tithiDisplay = tithi === 14 ? 14 : tithi === 29 ? 29 : tithi;
-
-  // Brahma Muhurta: 1h36m before sunrise
-  let brahmaEnd = sunrise ? new Date(sunrise.getTime() - 0) : null;
-  let brahmaStart = sunrise ? new Date(sunrise.getTime() - 96*60000) : null;
-
-  // --- Gaurabda ---
-  let gaurabda = getGaurabda(currentDate, masaIdx, paksha, tithiInPaksha);
-  document.getElementById('gaurabdaYear').textContent = gaurabda;
-  document.getElementById('gaurabdaSub').textContent = "Śrī Caitanya era · since 1486 CE";
-
-  // Vikrama Samvat (approximate: CE + 57, turns at Chaitra Śukla 1)
-  let vikramYear = currentDate.getUTCFullYear() + 57;
-  // Before Chaitra (masa 0), still in previous VS
-  if (masaIdx >= 9 || (masaIdx === 11 && paksha === "Kṛṣṇa")) vikramYear = currentDate.getUTCFullYear() + 56;
-  document.getElementById('vikramYear').textContent = vikramYear;
-  document.getElementById('vikramSub').textContent = `Saṃvatsara: ${SAMVATSARA[samIdx][1]}`;
-
-  // --- Samvatsara ---
-  document.getElementById('samvatsaraName').textContent = SAMVATSARA[samIdx][0];
-  document.getElementById('samvatsaraSub').textContent =
-    `${SAMVATSARA[samIdx][1]} · 60-year Bṛhaspati cycle · Year ${samIdx + 1} of 60`;
-
-  // --- Solar times ---
-  document.getElementById('sunriseTime').textContent = sunrise ? formatTime(sunrise, userTZ) : "—";
-  document.getElementById('sunriseGhati').textContent = sunrise ? "Day begins · " + toGhati(sunrise, new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate())) : "—";
-  document.getElementById('sunsetTime').textContent = sunset ? formatTime(sunset, userTZ) : "—";
-  document.getElementById('sunsetGhati').textContent = sunset && sunrise ? toGhati(sunset, sunrise) + " from sunrise" : "—";
-
-  // --- Tithi ---
-  let tithiData = TITHI[tithiDisplay];
-  document.getElementById('tithiDevanagari').textContent = tithiData[0];
-  // For Ekadashi, show Gaudiya name
-  let ekKey = `${paksha === "Śukla" ? "S" : "K"}-${masaIdx + 1}`;
-  let ekName = (tithiInPaksha === 11 && GAUDIYA_EKADASHI[ekKey]) ? GAUDIYA_EKADASHI[ekKey] : tithiData[1];
-  document.getElementById('tithiLatin').textContent = ekName;
-  document.getElementById('tithiSub').textContent =
-    `${tithiData[2]} Tithi · ${paksha} Pakṣa · ${tithiInPaksha} of 15` +
-    (tithiInPaksha === 11 ? " · 🙏 Ekādaśī fast" : "");
-  document.getElementById('tithiEnd').textContent = `Pakṣa: ${paksha === "Śukla" ? "Śukla — Bright Fortnight 🌕" : "Kṛṣṇa — Dark Fortnight 🌑"}`;
-
-  // --- Vara ---
-  let varaData = VARA[vara];
-  document.getElementById('varaDevanagari').textContent = varaData[0];
-  document.getElementById('varaLatin').textContent = varaData[1];
-  document.getElementById('varaSub').textContent = `${varaData[3]} · ${varaData[2]}`;
-
-  // --- Nakshatra ---
-  let nkData = NAKSHATRA[nakIdx];
-  document.getElementById('nakshatraDevanagari').textContent = nkData[0];
-  document.getElementById('nakshatraLatin').textContent = nkData[1];
-  document.getElementById('nakshatra-deity').textContent = `Deity: ${nkData[2]} · Pada ${Math.floor(siderealMoon(sunriseJD) % (360/27) / (360/108)) + 1} of 4`;
-
-  // Nakshatra bar
-  let bar = document.getElementById('nakshatraBar');
-  bar.innerHTML = '';
-  for(let i = 0; i < 27; i++) {
-    let pip = document.createElement('div');
-    pip.className = 'nk-pip' + (i === nakIdx ? ' active' : i < nakIdx ? ' past' : '');
-    bar.appendChild(pip);
+function banglaMonthInfo(date){
+  const y = date.getFullYear();
+  const t = date.getTime();
+  let by = y - 593; // civil Bangabda
+  // Build list of (startDate, monthIdx, bYearForThatMonth) covering this period
+  const candidates = [];
+  for (const [m, d] of BMONTH_STARTS){
+    const dt = new Date(y, m-1, d);
+    candidates.push({dt, m, d});
   }
+  // include previous year's Choitro (Mar 15 prev year) and next year's
+  candidates.unshift({dt: new Date(y-1, 2, 15), m: 3, d: 15, prev: true});
+  candidates.push({dt: new Date(y+1, 3, 14), m: 4, d: 14, next: true});
 
-  // --- Yoga ---
-  let ygData = YOGA[yogaIdx];
-  document.getElementById('yogaDevanagari').textContent = ygData[0];
-  document.getElementById('yogaLatin').textContent = ygData[1];
-  document.getElementById('yogaSub').textContent = `${ygData[2]} · Yoga ${yogaIdx + 1} of 27`;
-
-  // --- Karana ---
-  let krData = KARANA[karanaIdx];
-  document.getElementById('karanaDevanagari').textContent = krData[0];
-  document.getElementById('karanaLatin').textContent = krData[1];
-  document.getElementById('karanaSub').textContent = `${krData[2]} Karaṇa · Half-tithi ${Math.floor(((siderealMoon(sunriseJD) - siderealSun(sunriseJD) + 360) % 360) / 6) + 1}`;
-
-  // --- Masa / Paksha ---
-  let masaData = MASA[masaIdx];
-  document.getElementById('masaDevanagari').textContent = masaData[0];
-  document.getElementById('masaLatin').textContent = masaData[1];
-  document.getElementById('pakshaSub').textContent =
-    `${paksha === "Śukla" ? "शुक्ल पक्ष (Bright)" : "कृष्ण पक्ष (Dark)"} · Amānta system`;
-
-  // --- Brahma Muhurta ---
-  document.getElementById('brahmaTime').textContent =
-    brahmaStart && brahmaEnd ? formatTime(brahmaStart, userTZ) + " – " + formatTime(brahmaEnd, userTZ) : "—";
-  document.getElementById('brahmaSub').textContent =
-    "96 min before sunrise · Most sacred for prayer & meditation";
-
-  // --- Moon phase ---
-  document.getElementById('moonPhaseDevanagari').textContent = moon[2];
-  document.getElementById('moonPhaseLatin').textContent = `${moon[0]} ${moon[1]}`;
-  let moonLon = siderealMoon(sunriseJD);
-  let moonRashi = ["Meṣa","Vṛṣabha","Mithuna","Karkaṭa","Siṃha","Kanyā","Tulā","Vṛścika","Dhanuṣ","Makara","Kumbha","Mīna"];
-  document.getElementById('moonSignSub').textContent = `Candra in ${moonRashi[Math.floor(moonLon/30)]} · ${moonLon.toFixed(1)}°`;
-
-  // --- Muhurtas ---
-  function fmtPeriod(p) {
-    if(!p || !p.s) return "—";
-    return formatTime(p.s, userTZ) + "–" + formatTime(p.e, userTZ);
-  }
-  document.getElementById('rahuKala').textContent = fmtPeriod(muhurtas.rahu);
-  document.getElementById('gulikaKala').textContent = fmtPeriod(muhurtas.gulika);
-  document.getElementById('yamaganda').textContent = fmtPeriod(muhurtas.yama);
-  document.getElementById('abhijit').textContent = fmtPeriod(muhurtas.abhijit);
-  document.getElementById('amritaKala').textContent = fmtPeriod(muhurtas.amrita);
-  document.getElementById('shubhaKala').textContent = fmtPeriod(muhurtas.shubha);
-
-  // --- Festival ---
-  let pakCode = paksha === "Śukla" ? "S" : "K";
-  let festKey = `${pakCode}-${masaIdx+1}-${tithiInPaksha}`;
-  let fest = FESTIVALS[festKey];
-  let fb = document.getElementById('festivalBanner');
-  if(fest) {
-    document.getElementById('festivalName').textContent = fest[0];
-    document.getElementById('festivalSub').textContent = fest[1];
-    fb.classList.add('visible');
+  // find the latest start <= date
+  let chosen = candidates[0];
+  for (const c of candidates){ if (c.dt.getTime() <= t) chosen = c; }
+  const idx = BMONTH_STARTS.findIndex(([m,d]) => m===chosen.m && d===chosen.d);
+  let monthIdx;
+  if (idx === -1){
+    // it's the prev-year Choitro fallback (March 15 of prev year)
+    monthIdx = 11;
   } else {
-    fb.classList.remove('visible');
+    monthIdx = idx;
   }
+  // Bangla year: increments at Baishakh (Apr 14)
+  const baishakhThisYear = new Date(y, 3, 14).getTime();
+  const bYear = t >= baishakhThisYear ? y - 593 : y - 594;
+  // Day
+  const dayMs = 24*3600*1000;
+  const bDay = Math.floor((t - chosen.dt.getTime())/dayMs) + 1;
+  return {monthIdx, bYear, bDay};
+}
+function banglaMonthIdx(d){ return banglaMonthInfo(d).monthIdx; }
+function banglaYear(d){ return banglaMonthInfo(d).bYear; }
+function banglaDay(d){ return banglaMonthInfo(d).bDay; }
 
-  // --- Gaurabda card ---
-  let gaurabdaCardEl = document.getElementById('gaurabdaCardVal');
-  let gaurabdaCardSub = document.getElementById('gaurabdaCardSub');
-  if(gaurabdaCardEl) {
-    gaurabdaCardEl.textContent = `গৌরাব্দ ${gaurabda}`;
-    // Show what Gaurabda masa name is (same as standard, year-boundary different)
-    let gMasaName = MASA[masaIdx][1];
-    let gPaksha = paksha;
-    gaurabdaCardSub.textContent =
-      `Māsa: ${gMasaName} · ${gPaksha} Pakṣa · Tithi ${tithiInPaksha}` +
-      `\nYear began: Phālguna Śukla Pūrṇimā`;
+/* ---------- Rendering ---------- */
+const todayDate = new Date();
+let viewYear = todayDate.getFullYear();
+let viewMonth = todayDate.getMonth();
+let selectedDate = new Date(todayDate);
+
+const $ = id => document.getElementById(id);
+
+function festivalKey(p){ return `${p.paksha}-${p.hMonthIdx+1}-${p.tithiIdx%15+1}`; }
+function festivalFor(p){
+  const k = festivalKey(p);
+  const f = FESTIVALS[k];
+  // also check "K-m-30" for amavasya
+  if (!f && p.tithiIdx === 29){
+    return FESTIVALS[`K-${p.hMonthIdx+1}-30`];
   }
-
-  // Draw moon
-  drawMoon(tithi, moonLon);
+  return f;
 }
 
-function drawMoon(tithiIndex, moonLon) {
-  let canvas = document.getElementById('moonCanvas');
-  let ctx = canvas.getContext('2d');
-  let W = canvas.width, H = canvas.height, cx = W/2, cy = H/2, r = W/2 - 10;
-
-  ctx.clearRect(0,0,W,H);
-
-  // Background
-  ctx.fillStyle = '#050310';
-  ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.fill();
-
-  // Moon phase calculation
-  let phase = tithiIndex / 30; // 0=new, 0.5=full, 1=new
-  let angle = phase * 2 * Math.PI;
-
-  // Draw the lit portion
-  let gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-  gradient.addColorStop(0, '#F5EDD8');
-  gradient.addColorStop(0.6, '#C8A870');
-  gradient.addColorStop(1, '#8B6030');
-
-  ctx.save();
-  ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.clip();
-
-  if(tithiIndex === 29) {
-    // New moon - dark
-    ctx.fillStyle = '#1A1540';
-    ctx.fillRect(0,0,W,H);
-  } else if(tithiIndex === 14) {
-    // Full moon
-    ctx.fillStyle = gradient;
-    ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.fill();
-  } else {
-    // Crescent/gibbous
-    ctx.fillStyle = '#1A1540';
-    ctx.fillRect(0,0,W,H);
-    ctx.fillStyle = gradient;
-    ctx.beginPath(); ctx.arc(cx,cy,r,-Math.PI/2, Math.PI/2); ctx.closePath(); ctx.fill();
-
-    let crFactor = Math.cos(angle);
-    ctx.fillStyle = tithiIndex < 15 ? '#1A1540' : gradient;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, Math.abs(crFactor)*r, r, 0, -Math.PI/2, Math.PI/2);
-    ctx.closePath(); ctx.fill();
-
-    if(tithiIndex >= 15) {
-      ctx.fillStyle = '#1A1540';
-      ctx.beginPath(); ctx.arc(cx,cy,r,-Math.PI/2, Math.PI/2); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, Math.abs(crFactor)*r, r, 0, -Math.PI/2, Math.PI/2);
-      ctx.closePath(); ctx.fill();
-    }
-  }
-  ctx.restore();
-
-  // Stars around
-  ctx.fillStyle = 'rgba(255,255,255,0.6)';
-  let starPositions = [[30,25],[150,20],[165,140],[20,155],[90,10],[170,90]];
-  starPositions.forEach(([sx,sy]) => {
-    ctx.beginPath(); ctx.arc(sx,sy,1,0,2*Math.PI); ctx.fill();
-  });
-
-  // Nakshatra position indicator
-  let nkAngle = (moonLon / 360) * 2 * Math.PI - Math.PI/2;
-  let nkR = r + 4;
-  ctx.beginPath();
-  ctx.arc(cx + nkR*Math.cos(nkAngle), cy + nkR*Math.sin(nkAngle), 3, 0, 2*Math.PI);
-  ctx.fillStyle = '#E8A030';
-  ctx.fill();
-
-  // Ring
-  ctx.strokeStyle = 'rgba(232,160,48,0.3)';
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.arc(cx,cy,r+6,0,2*Math.PI); ctx.stroke();
-
-  // Om symbol
-  ctx.fillStyle = 'rgba(232,160,48,0.15)';
-  ctx.font = `${r*0.5}px 'Noto Sans Devanagari'`;
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('ॐ', cx, cy);
+function renderToday(){
+  const p = computePanchang(todayDate);
+  const greg = todayDate.toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
+  $('tdBangla').textContent = `${bn(p.bDay)} ${BANGLA_MASA[p.bMonthIdx][0]} ${bn(p.bYear)}`;
+  $('tdGreg').textContent = greg;
+  $('tdTithi').textContent = TITHI[p.tithiIdx][0];
+  $('tdPaksha').textContent = p.paksha === 'S' ? 'শুক্ল পক্ষ' : 'কৃষ্ণ পক্ষ';
+  $('tdPaksha').className = 'td-paksha' + (p.paksha === 'K' ? ' krishna' : '');
+  $('tdBmonth').textContent = BANGLA_MASA[p.bMonthIdx][0];
+  $('tdBmonthEn').textContent = BANGLA_MASA[p.bMonthIdx][1];
+  $('tdHmonth').textContent = HINDU_MASA[p.hMonthIdx][0];
+  $('tdHmonthEn').textContent = HINDU_MASA[p.hMonthIdx][1];
+  $('tdVmonth').textContent = VAISHNAVA_BY_HINDU_IDX[p.hMonthIdx][0];
+  $('tdVmonthEn').textContent = VAISHNAVA_BY_HINDU_IDX[p.hMonthIdx][1];
+  $('tdNak').textContent = NAKSHATRA[p.nakIdx][0];
+  $('tdNakEn').textContent = NAKSHATRA[p.nakIdx][1];
 }
 
-// Stars canvas
-function drawStars() {
-  let canvas = document.getElementById('stars');
-  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-  let ctx = canvas.getContext('2d');
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  for(let i = 0; i < 200; i++) {
-    let x = Math.random()*canvas.width, y = Math.random()*canvas.height;
-    let r = Math.random()*1.5;
-    let op = 0.2 + Math.random()*0.6;
-    ctx.beginPath(); ctx.arc(x,y,r,0,2*Math.PI);
-    ctx.fillStyle = `rgba(200,210,240,${op})`; ctx.fill();
-  }
-}
+const GREG_MONTHS_BN = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+const GREG_MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-function detectLocation() {
-  if(navigator.geolocation) {
-    document.getElementById('locText').textContent = 'Detecting…';
-    navigator.geolocation.getCurrentPosition(pos => {
-      userLat = pos.coords.latitude; userLon = pos.coords.longitude;
-      document.getElementById('locText').textContent =
-        `${userLat.toFixed(2)}°N, ${userLon.toFixed(2)}°E`;
-      renderPanchang();
-    }, () => {
-      document.getElementById('locText').textContent = 'Default: Delhi (28.6°N, 77.2°E)';
+function renderCalendar(){
+  $('calTitle').firstChild.nodeValue = `${GREG_MONTHS_BN[viewMonth]} ${bn(viewYear)}`;
+  $('calTitleEn').textContent = `${GREG_MONTHS_EN[viewMonth]} ${viewYear}`;
+  const grid = $('grid');
+  grid.innerHTML = '';
+  const first = new Date(viewYear, viewMonth, 1);
+  const startDow = first.getDay();
+  const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
+
+  for (let i = 0; i < startDow; i++){
+    const e = document.createElement('div'); e.className = 'cell empty'; grid.appendChild(e);
+  }
+  for (let day = 1; day <= daysInMonth; day++){
+    const d = new Date(viewYear, viewMonth, day);
+    const p = computePanchang(d);
+    const cell = document.createElement('button');
+    cell.className = 'cell';
+    cell.type = 'button';
+    if (d.getDay() === 0) cell.classList.add('sun');
+    if (p.paksha === 'K') cell.classList.add('krishna');
+    if (p.tithiIdx === 14) cell.classList.add('purnima');
+    if (p.tithiIdx === 29) cell.classList.add('amavasya');
+    if (festivalFor(p)) cell.classList.add('fest');
+    if (sameDay(d, todayDate)) cell.classList.add('today');
+    if (sameDay(d, selectedDate)) cell.classList.add('sel');
+
+    const tithiName = TITHI[p.tithiIdx][0];
+    cell.innerHTML = `
+      <span class="pdot"></span>
+      <div class="gd">${bn(day)}</div>
+      <div class="tithi-name">${tithiName}</div>
+    `;
+    cell.addEventListener('click', () => {
+      selectedDate = d;
+      renderCalendar();
+      renderDetail();
+      $('detail').scrollIntoView({behavior:'smooth', block:'nearest'});
     });
+    grid.appendChild(cell);
   }
 }
 
-window.addEventListener('resize', drawStars);
-drawStars();
+function sameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
 
-// Init
-setTimeout(() => {
-  document.getElementById('loadingOverlay').classList.add('hidden');
-  detectLocation();
-  renderPanchang();
-}, 1200);
+function renderDetail(){
+  const d = selectedDate;
+  const p = computePanchang(d);
+  $('detail').hidden = false;
+  $('dDate').textContent = `${bn(p.bDay)} ${BANGLA_MASA[p.bMonthIdx][0]} ${bn(p.bYear)}`;
+  $('dGreg').textContent = d.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  setItem('dTithi', TITHI[p.tithiIdx]);
+  $('dPaksha').firstChild.nodeValue = p.paksha === 'S' ? 'শুক্ল পক্ষ' : 'কৃষ্ণ পক্ষ';
+  $('dPakshaEn').textContent = p.paksha === 'S' ? 'Shukla (Waxing)' : 'Krishna (Waning)';
+  setItem('dVara', VARA[p.varaIdx]);
+  setItem('dNak', NAKSHATRA[p.nakIdx]);
+  setItem('dYoga', YOGA[p.yogaIdx]);
+  setItem('dKarana', KARANA[p.karIdx]);
+  setItem('dBmonth', BANGLA_MASA[p.bMonthIdx]);
+  setItem('dHmonth', HINDU_MASA[p.hMonthIdx]);
+  setItem('dVmonth', VAISHNAVA_BY_HINDU_IDX[p.hMonthIdx]);
+  const fest = festivalFor(p);
+  if (fest){
+    $('festWrap').hidden = false;
+    $('festList').innerHTML = `<div class="fest">${fest[0]}<small>${fest[1]}</small></div>`;
+  } else {
+    $('festWrap').hidden = true;
+  }
+}
+function setItem(id, pair){
+  const el = $(id);
+  el.firstChild.nodeValue = pair[0];
+  el.querySelector('small').textContent = pair[1];
+}
+
+$('prev').addEventListener('click', () => { viewMonth--; if (viewMonth<0){viewMonth=11; viewYear--;} renderCalendar(); });
+$('next').addEventListener('click', () => { viewMonth++; if (viewMonth>11){viewMonth=0; viewYear++;} renderCalendar(); });
+
+renderToday();
+renderCalendar();
+renderDetail();
+
+// Register service worker
+if ('serviceWorker' in navigator){
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
 </script>
 </body>
 </html>
