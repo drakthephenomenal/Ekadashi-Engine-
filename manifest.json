@@ -1,0 +1,43 @@
+{
+  "name": "Vedic Panchanga",
+  "short_name": "Panchanga",
+  "description": "GPS-based Vedic Panchanga — Tithi, Nakshatra, Yoga, Karana, Muhurtas & more",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0d0d0f",
+  "theme_color": "#f5a623",
+  "lang": "en",
+  "categories": ["lifestyle", "utilities"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%230d0d0f' rx='80'/%3E%3Ccircle cx='256' cy='220' r='110' fill='none' stroke='%23f5a623' stroke-width='18'/%3E%3Ccircle cx='256' cy='220' r='18' fill='%23f5a623'/%3E%3Cpath d='M256 110 v-30 M256 360 v30 M146 220 h-30 M396 220 h30' stroke='%23f5a623' stroke-width='14' stroke-linecap='round'/%3E%3Cpath d='M174 138 l-21-21 M360 324 l21 21 M174 302 l-21 21 M360 138 l21-21' stroke='%23f5a623' stroke-width='12' stroke-linecap='round'/%3E%3Ctext x='256' y='430' text-anchor='middle' font-family='serif' font-size='72' fill='%23f5a623'%3Eॐ%3C/text%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Today's Panchanga",
+      "short_name": "Today",
+      "description": "Open today's Vedic Panchanga",
+      "url": "./index.html"
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}
