@@ -64,6 +64,7 @@ header{text-align:center;padding:env(safe-area-inset-top,20px) 20px 6px}
 .now-cell-status{font-size:.5rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:1px 5px;border-radius:4px}
 .now-cell-status.active{background:rgba(245,166,35,.2);color:var(--primary)}
 .now-cell-status.soon{background:rgba(96,165,250,.15);color:#93c5fd}
+.now-cell-status.warn-soon{background:rgba(239,68,68,.15);color:#f87171}
 .now-cell-name{font-family:'Noto Serif',serif;font-size:.82rem;font-weight:600;color:var(--fg);margin-bottom:2px}
 .now-cell-effect{font-size:.58rem;color:var(--muted);line-height:1.4;margin-bottom:4px}
 .now-cell-time{font-size:.58rem;font-family:monospace;color:rgba(107,107,133,.7);line-height:1.4}
@@ -389,7 +390,13 @@ function getLunarMonthTithis(jd){
 
 function getNakshatraPeriods(jd,count=3){
   const SPAN=360/27;const periods=[];
-  const trueStart=findMoonLng(jd-2,jd,Math.floor(moonLong(jd)/SPAN)*SPAN);
+  // Search up to 3 days back; use jd+0.5 as upper bound so bisection
+  // doesn't collapse to jd when the current nakshatra is still ongoing
+  const curNakStart=Math.floor(moonLong(jd)/SPAN)*SPAN;
+  let trueStart=findMoonLng(jd-3,jd+0.5,curNakStart);
+  // Safety: if bisection returned a start that's after jd (no crossing found
+  // in window), fall back one full nakshatra span earlier
+  if(trueStart>jd) trueStart=findMoonLng(jd-4,jd,curNakStart);
   let s=trueStart;
   for(let i=0;i<count;i++){
     const idx=Math.floor(moonLong(s)/SPAN)%27;
@@ -403,7 +410,9 @@ function getNakshatraPeriods(jd,count=3){
 function getYogaPeriods(jd,count=3){
   const SPAN=360/27;const periods=[];
   const c0=norm(moonLong(jd)+sunLong(jd));
-  const trueStart=findYoga(jd-2,jd,Math.floor(c0/SPAN)*SPAN);
+  const curYogaStart=Math.floor(c0/SPAN)*SPAN;
+  let trueStart=findYoga(jd-3,jd+0.5,curYogaStart);
+  if(trueStart>jd) trueStart=findYoga(jd-4,jd,curYogaStart);
   let s=trueStart;
   for(let i=0;i<count;i++){
     const c=norm(moonLong(s)+sunLong(s));
@@ -418,7 +427,10 @@ function getYogaPeriods(jd,count=3){
 function getKaranaPeriods(jd,count=5){
   const periods=[];
   const idx0=Math.floor(norm(moonLong(jd)-sunLong(jd))/6);
-  const trueStart=findElong(jd-1.5,jd,idx0*6);
+  // Extend window to jd+0.5 so bisection doesn't collapse when karana
+  // boundary is right around now; also search 2 days back (karana ~6h)
+  let trueStart=findElong(jd-2,jd+0.5,idx0*6);
+  if(trueStart>jd) trueStart=findElong(jd-2,jd,idx0*6);
   let s=trueStart;
   for(let i=0;i<count;i++){
     const idx=Math.floor(norm(moonLong(s)-sunLong(s))/6);
@@ -598,9 +610,9 @@ function computeAll(){
   // Compute tithi/nakshatra/yoga for NOW (always today's data)
   const tithiPeriods=getTithiPeriods(jd,10);
   const currentTithiIdx=tithiIdx(jd);
-  const nakshatraPeriods=getNakshatraPeriods(jd,3);
-  const yogaPeriods=getYogaPeriods(jd,3);
-  const karanaPeriods=getKaranaPeriods(jd,5);
+  const nakshatraPeriods=getNakshatraPeriods(jd,4);
+  const yogaPeriods=getYogaPeriods(jd,4);
+  const karanaPeriods=getKaranaPeriods(jd,6);
   const lunarMonthTithis=getLunarMonthTithis(jd);
   const hm=hinduMonth(jd);
   const am=adhikMaas(jd);
@@ -648,7 +660,6 @@ function buildNowPanel(now,tithiPeriods,nakshatraPeriods,yogaPeriods,karanaPerio
   // For selected vaar use sunrise as reference; for today use current time
   const refForMuhurta=now;
   const activeMuhurta=isSelected?null:allM.find(m=>refForMuhurta>=m.s&&refForMuhurta<m.e);
-  const nextMuhurta=allM.filter(m=>m.s>refForMuhurta).sort((a,b)=>a.s-b.s)[0];
 
   function timeStr(start,end){
     return `${fmtDate(start)} ${fmt12(start)} – ${fmtEnd(end,start)}<br><span style="color:rgba(107,107,133,.5)">${dur(start,end)} duration</span>`;
@@ -687,28 +698,71 @@ function buildNowPanel(now,tithiPeriods,nakshatraPeriods,yogaPeriods,karanaPerio
   html+=cell('Yoga '+nowLabel,curYoga.name,
     YOGA_FX[curYoga.index],
     `ends ${fmtEnd(jdToDate(curYoga.endJD),now)}<br><span style="color:rgba(107,107,133,.5)">${dur(now,jdToDate(curYoga.endJD))} ${timeLeftLabel}</span>`,'');
+  // Karana effects lookup
+  const KARANA_FX={
+    'Bava':'Auspicious for all works — good for new beginnings & prosperity',
+    'Balava':'Favorable for love, arts & pleasant activities',
+    'Kaulava':'Good for friends, family matters & gentle pursuits',
+    'Taitila':'Auspicious for agriculture, trade & steady work',
+    'Garija':'Suitable for travel, seeking boons & religious acts',
+    'Vanija':'Excellent for commerce, trade & financial dealings',
+    'Vishti':'Inauspicious (Bhadra) — avoid new work & important decisions',
+    'Kimstughna':'Fixed — auspicious start of lunar cycle, good for sacred rites',
+    'Chatushpada':'Fixed — auspicious for animal-related & agricultural work',
+    'Naga':'Fixed — good for mantra, tantra & occult practices',
+  };
+  const karFx=KARANA_FX[curKarana.name]||'Half-tithi unit — governs the quality of the lunar half';
+  const karCls=curKarana.name==='Vishti'?'warn':'';
   // Karana
   html+=cell('Karana '+nowLabel,curKarana.name,
-    'Half-tithi unit — current lunar half',
-    `ends ${fmtEnd(jdToDate(curKarana.endJD),now)}<br><span style="color:rgba(107,107,133,.5)">${dur(now,jdToDate(curKarana.endJD))} ${timeLeftLabel}</span>`,'');
+    karFx,
+    `ends ${fmtEnd(jdToDate(curKarana.endJD),now)}<br><span style="color:rgba(107,107,133,.5)">${dur(now,jdToDate(curKarana.endJD))} ${timeLeftLabel}</span>`,karCls);
+
   // Active muhurta
   if(activeMuhurta){
     html+=cellWithStatus('Muhurta Active','● Now',
-      activeMuhurta.type==='good'?'active':'active',
+      'active',
       activeMuhurta.label,
       MEFF[activeMuhurta.label]||'',
       timeStr(activeMuhurta.s,activeMuhurta.e),
       activeMuhurta.type==='warn'?'warn':'good');
   }
-  // Coming soon muhurta
-  if(nextMuhurta){
-    const minsAway=Math.round((+nextMuhurta.s-+now)/60000);
-    const soonLabel=minsAway<60?`in ${minsAway}m`:`in ${Math.floor(minsAway/60)}h ${minsAway%60?minsAway%60+'m':''}`;
-    html+=cellWithStatus(isSelected?'First Muhurta of Day':'Coming Soon',isSelected?fmtDate(nextMuhurta.s):soonLabel,'soon',
-      nextMuhurta.label,
-      MEFF[nextMuhurta.label]||'',
-      timeStr(nextMuhurta.s,nextMuhurta.e),
-      nextMuhurta.type==='warn'?'warn':'');
+
+  if(!isSelected){
+    // Upcoming muhurtas — show next auspicious AND next inauspicious separately
+    const futureM=allM.filter(m=>m.s>refForMuhurta).sort((a,b)=>a.s-b.s);
+    const nextGood=futureM.find(m=>m.type==='good');
+    const nextWarn=futureM.find(m=>m.type==='warn');
+
+    function soonTag(m){
+      const mins=Math.round((+m.s-+now)/60000);
+      return mins<60?`in ${mins}m`:`in ${Math.floor(mins/60)}h${mins%60?' '+mins%60+'m':''}`;
+    }
+
+    if(nextGood){
+      html+=cellWithStatus('Coming Soon — Auspicious',soonTag(nextGood),'soon',
+        nextGood.label,
+        MEFF[nextGood.label]||'',
+        timeStr(nextGood.s,nextGood.e),
+        'good');
+    }
+    if(nextWarn){
+      html+=cellWithStatus('Coming Soon — Inauspicious',soonTag(nextWarn),'warn-soon',
+        nextWarn.label,
+        MEFF[nextWarn.label]||'',
+        timeStr(nextWarn.s,nextWarn.e),
+        'warn');
+    }
+  } else {
+    // Selected vaar — show first muhurta of day
+    const nextMuhurta=allM.filter(m=>m.s>refForMuhurta).sort((a,b)=>a.s-b.s)[0];
+    if(nextMuhurta){
+      html+=cellWithStatus('First Muhurta of Day',fmtDate(nextMuhurta.s),'soon',
+        nextMuhurta.label,
+        MEFF[nextMuhurta.label]||'',
+        timeStr(nextMuhurta.s,nextMuhurta.e),
+        nextMuhurta.type==='warn'?'warn':'');
+    }
   }
   return html;
 }
@@ -760,9 +814,9 @@ function renderAll(){
     const refJD=dateToJD(refTime);
     panelRef=refTime;
     panelTithiP=getTithiPeriods(refJD,6);
-    panelNakP=getNakshatraPeriods(refJD,3);
-    panelYogaP=getYogaPeriods(refJD,3);
-    panelKarP=getKaranaPeriods(refJD,5);
+    panelNakP=getNakshatraPeriods(refJD,4);
+    panelYogaP=getYogaPeriods(refJD,4);
+    panelKarP=getKaranaPeriods(refJD,6);
     panelMd=md;
     const off=displayVaar.dayOffset;
     const when=off===1?'Tomorrow':off===-1?'Yesterday':off>0?'+'+off+' days':off+' days';
@@ -834,21 +888,24 @@ function renderAll(){
   }).join('');
 
   // Nakshatra/Yoga/Karana rows — always today's data (panchanga angas don't change by vaar selection)
-  document.getElementById('nakshatra-rows').innerHTML=nakshatraPeriods.map(p=>`
+  // Helper: format start time — if the period started in the past (before now), show "from <date>"
+  // Filter: skip entries whose duration is < 2 minutes (bisection boundary artefacts)
+  function pRowTime(p){
+    const sd=jdToDate(p.startJD),ed=jdToDate(p.endJD);
+    const durMin=(p.endJD-p.startJD)*1440; // minutes
+    if(durMin<2) return null; // discard artefact
+    return `${fmtDT(sd)}<br>– ${fmtEnd(ed,sd)}`;
+  }
+  function renderPeriodRows(periods){
+    return periods.map(p=>{const t=pRowTime(p);if(!t)return'';return`
     <div class="p-row sukla" style="padding-left:14px">
       <span class="p-row-name">${p.name}</span>
-      <div class="p-row-time">${fmtDT(jdToDate(p.startJD))}<br>– ${fmtEnd(jdToDate(p.endJD),jdToDate(p.startJD))}</div>
-    </div>`).join('');
-  document.getElementById('yoga-rows').innerHTML=yogaPeriods.map(p=>`
-    <div class="p-row sukla" style="padding-left:14px">
-      <span class="p-row-name">${p.name}</span>
-      <div class="p-row-time">${fmtDT(jdToDate(p.startJD))}<br>– ${fmtEnd(jdToDate(p.endJD),jdToDate(p.startJD))}</div>
-    </div>`).join('');
-  document.getElementById('karana-rows').innerHTML=karanaPeriods.map(p=>`
-    <div class="p-row sukla" style="padding-left:14px">
-      <span class="p-row-name">${p.name}</span>
-      <div class="p-row-time">${fmtDT(jdToDate(p.startJD))}<br>– ${fmtEnd(jdToDate(p.endJD),jdToDate(p.startJD))}</div>
-    </div>`).join('');
+      <div class="p-row-time">${t}</div>
+    </div>`;}).join('');
+  }
+  document.getElementById('nakshatra-rows').innerHTML=renderPeriodRows(nakshatraPeriods);
+  document.getElementById('yoga-rows').innerHTML=renderPeriodRows(yogaPeriods);
+  document.getElementById('karana-rows').innerHTML=renderPeriodRows(karanaPeriods);
 
   // Auspicious/Inauspicious — from DISPLAYED vaar
   function isNowM(s,e){return isActive&&now>=s&&now<e}
