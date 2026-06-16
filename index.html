@@ -130,6 +130,18 @@ section{padding:0 16px}
 .m-row.auspicious{border-color:rgba(34,197,94,.15);background:rgba(34,197,94,.03)}
 .m-row.inauspicious{border-color:rgba(239,68,68,.15);background:rgba(239,68,68,.03)}
 .m-row.now-active{box-shadow:0 0 0 1px var(--primary);background:var(--pd)}
+.m-now-badge{display:inline-flex;align-items:center;gap:4px;font-size:.48rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:rgba(245,166,35,.25);color:var(--primary);padding:2px 7px;border-radius:4px;margin-left:7px;vertical-align:middle}
+.m-now-badge .dot{width:5px;height:5px;background:var(--primary);border-radius:50%;animation:pulse 1.8s ease-in-out infinite;flex-shrink:0}
+.m-time-left{font-size:.55rem;color:var(--primary);font-weight:600;margin-top:2px}
+.active-muhurta-banner{margin:0 0 10px;padding:10px 13px;border-radius:12px;display:flex;align-items:center;gap:10px;border:1px solid rgba(245,166,35,.4);background:rgba(245,166,35,.08)}
+.active-muhurta-banner.warn{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.06)}
+.amb-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);animation:pulse 1.8s ease-in-out infinite;flex-shrink:0}
+.active-muhurta-banner.warn .amb-dot{background:#f87171}
+.amb-body{flex:1}
+.amb-label{font-size:.52rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.amb-name{font-size:.78rem;font-weight:600;font-family:'Noto Serif',serif;color:var(--primary)}
+.active-muhurta-banner.warn .amb-name{color:#f87171}
+.amb-time{font-size:.55rem;font-family:monospace;color:var(--muted)}
 .m-icon{font-size:1.2rem;flex-shrink:0;margin-top:1px}
 .m-body{flex:1;min-width:0}
 .m-label{font-size:.68rem;font-weight:600}
@@ -157,13 +169,25 @@ section{padding:0 16px}
 #loading{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px}
 .spin{animation:spin 1s linear infinite;font-size:1.5rem;color:var(--primary)}
 @keyframes spin{to{transform:rotate(360deg)}}
+#load-spinner{display:flex;flex-direction:column;align-items:center;gap:14px}
+#load-error{display:none;text-align:center;padding:0 28px}
+#load-error .err-icon{font-size:2rem;margin-bottom:8px}
+#load-error .err-msg{font-size:.72rem;color:var(--muted);line-height:1.7;letter-spacing:.04em}
+#load-error .err-retry{margin-top:16px;padding:9px 22px;border-radius:20px;border:1px solid rgba(245,166,35,.4);background:rgba(245,166,35,.08);color:var(--primary);font-size:.65rem;letter-spacing:.13em;text-transform:uppercase;cursor:pointer}
 </style>
 </head>
 <body>
 <div class="app">
   <div id="loading">
-    <div class="spin">↻</div>
-    <div style="font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);font-family:'Noto Serif',serif">Computing Panchanga…</div>
+    <div id="load-spinner">
+      <div class="spin">↻</div>
+      <div style="font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);font-family:'Noto Serif',serif">Computing Panchanga…</div>
+    </div>
+    <div id="load-error">
+      <div class="err-icon">🙏</div>
+      <div class="err-msg">Could not compute Panchanga.<br>Please check your connection<br>and try again.</div>
+      <button class="err-retry" onclick="location.reload()">Retry</button>
+    </div>
   </div>
   <div id="main" style="display:none">
     <header>
@@ -390,7 +414,8 @@ function getTithiPeriods(jd,count=10){
 
 function getLunarMonthTithis(jd){
   const elong=norm(moonLong(jd)-sunLong(jd));
-  const prevNM=findElong(jd-(elong/360)*29.53-2,jd,0);
+  // Use -3 guard (was -2) so we don't miss New Moon when elong is very small
+  const prevNM=findElong(jd-(elong/360)*29.53-3,jd,0);
   const periods=[];let s=prevNM+.0001;
   for(let i=0;i<30;i++){
     const idx=tithiIdx(s);
@@ -457,15 +482,35 @@ function getKaranaPeriods(jd,count=5){
 }
 
 function gaurabda(date){
-  const y=date.getFullYear(),m=date.getMonth()+1,d=date.getDate();
-  return y-1486-((m<3||(m===3&&d<15))?1:0);
+  // Gaurabda year starts on Gaura Purnima = Phalguna Purnima (Sukla Purnima when Sun is in Aquarius/Pisces ~Feb-Mar)
+  // Approximate: find the Purnima (Full Moon, elong≈180°) closest before/on this date in the Feb–Apr window
+  const y=date.getFullYear();
+  // Search for Purnima between Jan 15 and Apr 20 of current year
+  const winStart=dateToJD(new Date(y,0,15));
+  const winEnd=dateToJD(new Date(y,3,20));
+  // Find all Purnimas in window (elong = 180°, tithi index 14)
+  let gauPurnimaJD=null;
+  let s=winStart;
+  while(s<winEnd){
+    const idx=tithiIdx(s);
+    const end=findElong(s,s+2,((idx+1)%30)*12);
+    if(idx===14){gauPurnimaJD=s+(end-s)/2;break;} // found Purnima; take midpoint
+    s=end+.0001;
+  }
+  if(!gauPurnimaJD){
+    // Fallback: crude March 15 cutoff
+    const m=date.getMonth()+1,d=date.getDate();
+    return y-1486-((m<3||(m===3&&d<15))?1:0);
+  }
+  const gauPurnima=jdToDate(gauPurnimaJD);
+  return y-1486-(date<gauPurnima?1:0);
 }
-function hinduMonth(jd){const idx=Math.floor(sunLong(jd)/30)%12;return{name:HM[idx],vaishnavName:VM[idx]}}
+function hinduMonth(jd){const idx=Math.floor(sunLongSid(jd)/30)%12;return{name:HM[idx],vaishnavName:VM[idx]}}
 function adhikMaas(jd){
   const elong=norm(moonLong(jd)-sunLong(jd));
   const prevNM=findElong(jd-(elong/360)*29.53-2,jd,0);
   const nextNM=findElong(jd,jd+32,0);
-  const sS=sunLong(prevNM),sE=sunLong(nextNM);
+  const sS=sunLongSid(prevNM),sE=sunLongSid(nextNM);
   const moved=norm(sE-sS);
   const dist=norm((Math.floor(sS/30)+1)*30-sS);
   const isAdhik=dist>=moved;
@@ -516,8 +561,10 @@ function getMuhurtaData(vaar,lat,lng){
     godhuli:{start:new Date(+sunset-24*60*1000),end:new Date(+sunset+24*60*1000)},
     nishita:{start:new Date(+midnight-24*60*1000),end:new Date(+midnight+24*60*1000)},
     durMuhurtas:(DUR[wd]||[]).map(pos=>({start:new Date(+sunrise+(pos-1)*durMs),end:new Date(+sunrise+pos*durMs)})),
-    varjyam:moonrise?{start:new Date(+moonrise+varjOff),end:new Date(+moonrise+varjOff+38*60*1000)}:null,
-    amritaKala:moonrise?{start:new Date(+moonrise+varjOff+68*60*1000),end:new Date(+moonrise+varjOff+106*60*1000)}:null,
+    // Only use moonrise if it falls within this vaar's day window (sunrise → next sunrise ~24h)
+    // SunCalc can return yesterday's moonrise if moon hasn't risen yet today
+    varjyam:(moonrise&&+moonrise>=+sunrise&&+moonrise<+sunrise+86400000)?{start:new Date(+moonrise+varjOff),end:new Date(+moonrise+varjOff+38*60*1000)}:null,
+    amritaKala:(moonrise&&+moonrise>=+sunrise&&+moonrise<+sunrise+86400000)?{start:new Date(+moonrise+varjOff+68*60*1000),end:new Date(+moonrise+varjOff+106*60*1000)}:null,
   };
 }
 
@@ -659,6 +706,12 @@ function buildNowPanel(now,tithiPeriods,nakshatraPeriods,yogaPeriods,karanaPerio
     ||karanaPeriods[0];
 
   // All muhurtas from today
+  // Also compute next day's Brahma Muhurta so "Coming Soon" works after midnight/late night
+  const nextDayDate=new Date(+mdToday.sunrise+86400000);
+  const nextDaySR=SunCalc.getTimes(nextDayDate,mdToday.sunrise.lat||LAT,mdToday.sunrise.lng||LNG);
+  // Re-use the passed-in lat/lng via closure (LAT/LNG are global)
+  const nextBMStart=new Date(+SunCalc.getTimes(nextDayDate,LAT,LNG).sunrise-96*60*1000);
+  const nextBMEnd=new Date(+nextBMStart+48*60*1000);
   const allM=[
     {label:'Brahma Muhurta',s:mdToday.brahmaMuhurta.start,e:mdToday.brahmaMuhurta.end,type:'good'},
     {label:'Abhijit Muhurta',s:mdToday.abhijit.start,e:mdToday.abhijit.end,type:'good'},
@@ -671,6 +724,8 @@ function buildNowPanel(now,tithiPeriods,nakshatraPeriods,yogaPeriods,karanaPerio
     {label:'Gulika (Mandi)',s:mdToday.gulika.start,e:mdToday.gulika.end,type:'warn'},
     ...(mdToday.varjyam?[{label:'Varjyam / Tyajya',s:mdToday.varjyam.start,e:mdToday.varjyam.end,type:'warn'}]:[]),
     ...mdToday.durMuhurtas.map((d,i)=>({label:`Dur Muhurta ${i+1}`,s:d.start,e:d.end,type:'warn'})),
+    // Next day's BM so "Coming Soon" is never empty in the post-midnight/pre-BM window
+    {label:'Brahma Muhurta',s:nextBMStart,e:nextBMEnd,type:'good'},
   ];
   // For selected vaar use sunrise as reference; for today use current time
   const refForMuhurta=now;
@@ -882,9 +937,10 @@ function renderAll(){
   </div>`).join('');
 
   // Tithi rows — for the DISPLAYED vaar's vedic day window
+  // Use panelTithiP which is already computed for the correct vaar (today or selected)
   const bmStart=+displayVaar.brahmaMuhurtaStart;
   const nextDayBM=+new Date(+displayVaar.sunrise+86400000-96*60*1000);
-  const rel=tithiPeriods.filter(p=>+jdToDate(p.endJD)>bmStart&&+jdToDate(p.startJD)<nextDayBM);
+  const rel=panelTithiP.filter(p=>+jdToDate(p.endJD)>bmStart&&+jdToDate(p.startJD)<nextDayBM);
   const nextVaarName=VAAR[(displayVaarIdx+1)%7];
   document.getElementById('tithi-rows').innerHTML=rel.map(p=>{
     const sd=jdToDate(p.startJD),ed=jdToDate(p.endJD);
@@ -923,30 +979,46 @@ function renderAll(){
   document.getElementById('karana-rows').innerHTML=renderPeriodRows(karanaPeriods);
 
   // Auspicious/Inauspicious — from DISPLAYED vaar
-  function isNowM(s,e){return isActive&&now>=s&&now<e}
+  function isNowM(s,e){return isActive&&s&&e&&now>=s&&now<e}
   function mRowH(icon,label,s,e,desc,type){
-    return`<div class="m-row ${type}${isNowM(s,e)?' now-active':''}">
+    const active=isNowM(s,e);
+    const timeLeft=active?`<div class="m-time-left">ends ${fmtEnd(e,now)} &nbsp;·&nbsp; ${dur(now,e)} left</div>`:'';
+    const nowBadge=active?`<span class="m-now-badge"><span class="dot"></span>NOW</span>`:'';
+    return`<div class="m-row ${type}${active?' now-active':''}">
       <span class="m-icon">${icon}</span>
-      <div class="m-body"><div class="m-label">${label}</div><div class="m-desc">${desc}</div></div>
+      <div class="m-body"><div class="m-label">${label}${nowBadge}</div><div class="m-desc">${desc}</div>${timeLeft}</div>
       <div class="m-time">${fmtDate(s)}<br>${fmt12(s)} – ${fmtEnd(e,s)}<br><span style="opacity:.6">${dur(s,e)}</span></div>
     </div>`;
   }
-  document.getElementById('ausp-rows').innerHTML=[
+  function activeBanner(items,warnCls){
+    const a=items.find(x=>isNowM(x.s,x.e));
+    if(!a)return'';
+    return`<div class="active-muhurta-banner ${warnCls}">
+      <div class="amb-dot"></div>
+      <div class="amb-body">
+        <div class="amb-label">Active Now</div>
+        <div class="amb-name">${a.icon} ${a.label}</div>
+        <div class="amb-time">${fmt12(a.s)} – ${fmtEnd(a.e,a.s)} &nbsp;·&nbsp; ${dur(now,a.e)} left</div>
+      </div>
+    </div>`;
+  }
+  const auspItems=[
     {icon:'🌅',label:'Brahma Muhurta',s:md.brahmaMuhurta.start,e:md.brahmaMuhurta.end,desc:'Best for meditation, study & prayer'},
     {icon:'🏆',label:'Abhijit Muhurta',s:md.abhijit.start,e:md.abhijit.end,desc:'Victory muhurta — excellent for important work'},
     {icon:'⚔️',label:'Vijaya Muhurta',s:md.vijaya.start,e:md.vijaya.end,desc:'Afternoon victory — good for negotiations'},
     {icon:'🌄',label:'Godhuli Muhurta',s:md.godhuli.start,e:md.godhuli.end,desc:'Sacred cow-dust time — around sunset'},
     {icon:'🌙',label:'Nishita Muhurta',s:md.nishita.start,e:md.nishita.end,desc:'Midnight — Tantra, Mantra & deep Sadhana'},
     ...(md.amritaKala?[{icon:'✨',label:'Amrita Kala',s:md.amritaKala.start,e:md.amritaKala.end,desc:'Nakshatra nectar time — abundant results'}]:[]),
-  ].map(x=>mRowH(x.icon,x.label,x.s,x.e,x.desc,'auspicious')).join('');
-
-  document.getElementById('inaup-rows').innerHTML=[
+  ];
+  const inaupItems=[
     {icon:'☠️',label:'Rahu Kalam',s:md.rahuKalam.start,e:md.rahuKalam.end,desc:'Strictly avoid new beginnings & auspicious work'},
-    {icon:'⚰️',label:'Yamaganda',s:md.yamaganda.start,e:md.yamaganda.end,desc:'Yama\'s period — avoid travel & decisions'},
+    {icon:'⚰️',label:'Yamaganda',s:md.yamaganda.start,e:md.yamaganda.end,desc:'Yama's period — avoid travel & decisions'},
     {icon:'🐍',label:'Gulika (Mandi)',s:md.gulika.start,e:md.gulika.end,desc:'Saturn-influenced — delays & obstacles'},
     ...(md.varjyam?[{icon:'🚫',label:'Varjyam / Tyajya',s:md.varjyam.start,e:md.varjyam.end,desc:'Moon-based window — avoid sacred activities'}]:[]),
     ...md.durMuhurtas.map((d,i)=>({icon:'⚠️',label:`Dur Muhurta ${i+1}`,s:d.start,e:d.end,desc:'Daily inauspicious slot — avoid new ventures'})),
-  ].map(x=>mRowH(x.icon,x.label,x.s,x.e,x.desc,'inauspicious')).join('');
+  ];
+  document.getElementById('ausp-rows').innerHTML=activeBanner(auspItems,'')+auspItems.map(x=>mRowH(x.icon,x.label,x.s,x.e,x.desc,'auspicious')).join('');
+  document.getElementById('inaup-rows').innerHTML=activeBanner(inaupItems,'warn')+inaupItems.map(x=>mRowH(x.icon,x.label,x.s,x.e,x.desc,'inauspicious')).join('');
 
   // Special yogas — recompute for displayVaar (may differ from activeVaar)
   let spDisplay=sp;
@@ -986,14 +1058,44 @@ function tCell(t,num,isActive,prefix){
 // ═══════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════
-function init(){
-  DATA=computeAll();
-  document.getElementById('loading').style.display='none';
-  document.getElementById('main').style.display='block';
-  renderAll();
+function showLoadError(msg){
+  document.getElementById('load-spinner').style.display='none';
+  const el=document.getElementById('load-error');
+  el.style.display='block';
+  if(msg) el.querySelector('.err-msg').innerHTML=msg;
 }
-setInterval(()=>{DATA=computeAll();renderAll();},30000);
-setTimeout(init,400);
+
+function init(){
+  // Guard: SunCalc must be loaded (CDN might be slow/offline)
+  if(typeof SunCalc==='undefined'){
+    showLoadError('SunCalc library not loaded.<br>Check your connection and retry.');
+    return;
+  }
+  try{
+    DATA=computeAll();
+    document.getElementById('loading').style.display='none';
+    document.getElementById('main').style.display='block';
+    renderAll();
+  }catch(e){
+    console.error('Panchanga init error:',e);
+    showLoadError('Calculation error: '+e.message+'<br><br>Please retry.');
+  }
+}
+
+setInterval(()=>{
+  if(!DATA)return;
+  try{DATA=computeAll();renderAll();}catch(e){console.warn('Refresh error:',e);}
+},30000);
+
+// Retry up to 3× waiting for SunCalc CDN, then show error
+let _initTries=0;
+function tryInit(){
+  _initTries++;
+  if(typeof SunCalc!=='undefined'){init();return;}
+  if(_initTries<6){setTimeout(tryInit,500);}
+  else{showLoadError('Could not load astronomy library.<br>Check your connection and retry.');}
+}
+setTimeout(tryInit,300);
 </script>
 <script>
 if('serviceWorker' in navigator){

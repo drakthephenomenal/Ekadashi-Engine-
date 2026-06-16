@@ -5,7 +5,7 @@
 //   • SunCalc CDN → Cache First (library doesn't change)
 //   • Everything else → Network First with cache fallback
 
-const CACHE_NAME = 'vedic-panchanga-v4';
+const CACHE_NAME = 'vedic-panchanga-v6';
 const FONT_CACHE = 'vedic-fonts-v1';
 const CDN_CACHE  = 'vedic-cdn-v1';
 
@@ -52,8 +52,9 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // App shell & local assets — cache first
-  if (url.pathname.endsWith('.html') || url.pathname.endsWith('.json') || url.pathname.endsWith('.js')) {
+  // App shell & local assets — cache first (exclude sw.js itself so updates propagate)
+  if ((url.pathname.endsWith('.html') || url.pathname.endsWith('.json') || url.pathname.endsWith('.js'))
+      && !url.pathname.endsWith('sw.js')) {
     event.respondWith(cacheFirst(event.request, CACHE_NAME));
     return;
   }
