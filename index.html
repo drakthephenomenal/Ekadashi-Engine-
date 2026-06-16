@@ -269,6 +269,17 @@ function dateToJD(date){
   return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+day+B-1524.5;
 }
 function jdToDate(jd){return new Date((jd-2440587.5)*86400000)}
+
+// ── Lahiri Ayanamsa (IAU standard for Vedic calculations) ────────────────
+// Subtracts from tropical to get sidereal longitude
+function lahiriAyanamsa(jd){
+  const T=(jd-2451545.0)/36525;
+  // Chitrapaksha/Lahiri: epoch J1900.0 value 22°27''22" + rate
+  return 22.46045+(jd-2415020.3)/365.25*0.013587556;
+}
+// Sidereal versions used for Nakshatra/Yoga/Karana (Vedic)
+function moonLongSid(jd){return norm(moonLong(jd)-lahiriAyanamsa(jd));}
+function sunLongSid(jd){return norm(sunLong(jd)-lahiriAyanamsa(jd));}
 function sunLong(jd){
   const T=(jd-2451545)/36525;
   let L=280.46646+36000.76983*T+.0003032*T*T;
@@ -311,12 +322,12 @@ function findElong(jdS,jdE,target){
 }
 function findMoonLng(jdS,jdE,target){
   let lo=jdS,hi=jdE;
-  for(let i=0;i<52;i++){const m=(lo+hi)/2;const d=norm(moonLong(m)-target);d<180?hi=m:lo=m}
+  for(let i=0;i<52;i++){const m=(lo+hi)/2;const d=norm(moonLongSid(m)-target);d<180?hi=m:lo=m}
   return(lo+hi)/2;
 }
 function findYoga(jdS,jdE,target){
   let lo=jdS,hi=jdE;
-  for(let i=0;i<52;i++){const m=(lo+hi)/2;const d=norm(norm(moonLong(m)+sunLong(m))-target);d<180?hi=m:lo=m}
+  for(let i=0;i<52;i++){const m=(lo+hi)/2;const d=norm(norm(moonLongSid(m)+sunLongSid(m))-target);d<180?hi=m:lo=m}
   return(lo+hi)/2;
 }
 
@@ -392,14 +403,14 @@ function getNakshatraPeriods(jd,count=3){
   const SPAN=360/27;const periods=[];
   // Search up to 3 days back; use jd+0.5 as upper bound so bisection
   // doesn't collapse to jd when the current nakshatra is still ongoing
-  const curNakStart=Math.floor(moonLong(jd)/SPAN)*SPAN;
+  const curNakStart=Math.floor(moonLongSid(jd)/SPAN)*SPAN;
   let trueStart=findMoonLng(jd-3,jd+0.5,curNakStart);
   // Safety: if bisection returned a start that's after jd (no crossing found
   // in window), fall back one full nakshatra span earlier
   if(trueStart>jd) trueStart=findMoonLng(jd-4,jd,curNakStart);
   let s=trueStart;
   for(let i=0;i<count;i++){
-    const idx=Math.floor(moonLong(s)/SPAN)%27;
+    const idx=Math.floor(moonLongSid(s)/SPAN)%27;
     const end=findMoonLng(s,s+3,((idx+1)%27)*SPAN);
     periods.push({index:idx,name:NAKSHATRA[idx],startJD:s,endJD:end});
     s=end+.0001;
@@ -409,13 +420,13 @@ function getNakshatraPeriods(jd,count=3){
 
 function getYogaPeriods(jd,count=3){
   const SPAN=360/27;const periods=[];
-  const c0=norm(moonLong(jd)+sunLong(jd));
+  const c0=norm(moonLongSid(jd)+sunLongSid(jd));
   const curYogaStart=Math.floor(c0/SPAN)*SPAN;
   let trueStart=findYoga(jd-3,jd+0.5,curYogaStart);
   if(trueStart>jd) trueStart=findYoga(jd-4,jd,curYogaStart);
   let s=trueStart;
   for(let i=0;i<count;i++){
-    const c=norm(moonLong(s)+sunLong(s));
+    const c=norm(moonLongSid(s)+sunLongSid(s));
     const idx=Math.floor(c/SPAN)%27;
     const end=findYoga(s,s+4,((idx+1)%27)*SPAN);
     periods.push({index:idx,name:YOGA_N[idx],startJD:s,endJD:end});
@@ -486,7 +497,7 @@ function getMuhurtaData(vaar,lat,lng){
   const durMs=(+sunset-+sunrise)/15;
   // Nakshatra index for this vaar (use JD of this vaar's sunrise)
   const jdSR=dateToJD(sunrise);
-  const nakIdx=Math.floor(moonLong(jdSR)/(360/27))%27;
+  const nakIdx=Math.floor(moonLongSid(jdSR)/(360/27))%27;
   const varjOff=VARJ_OFF[nakIdx]*48*60*1000;
   return{
     sunrise,sunset,noon,moonrise,moonset,wd,
@@ -936,7 +947,7 @@ function renderAll(){
   // Special yogas — recompute for displayVaar (may differ from activeVaar)
   let spDisplay=sp;
   if(!isActive){
-    const dispNakIdx=Math.floor(moonLong(dateToJD(displayVaar.sunrise))/(360/27))%27;
+    const dispNakIdx=Math.floor(moonLongSid(dateToJD(displayVaar.sunrise))/(360/27))%27;
     const dispVaarEnd=new Date(+displayVaar.sunrise+86400000-96*60*1000);
     spDisplay=specialYogas(displayVaar.index,dispNakIdx,displayVaar.brahmaMuhurtaStart,dispVaarEnd);
   }
