@@ -5,7 +5,7 @@
 //   • SunCalc CDN → Cache First (library doesn't change)
 //   • Everything else → Network First with cache fallback
 
-const CACHE_NAME = 'vedic-panchanga-v4';
+const CACHE_NAME = 'vedic-panchanga-v5';
 const FONT_CACHE = 'vedic-fonts-v1';
 const CDN_CACHE  = 'vedic-cdn-v1';
 

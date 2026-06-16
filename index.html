@@ -130,6 +130,18 @@ section{padding:0 16px}
 .m-row.auspicious{border-color:rgba(34,197,94,.15);background:rgba(34,197,94,.03)}
 .m-row.inauspicious{border-color:rgba(239,68,68,.15);background:rgba(239,68,68,.03)}
 .m-row.now-active{box-shadow:0 0 0 1px var(--primary);background:var(--pd)}
+.m-now-badge{display:inline-flex;align-items:center;gap:4px;font-size:.48rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:rgba(245,166,35,.25);color:var(--primary);padding:2px 7px;border-radius:4px;margin-left:7px;vertical-align:middle}
+.m-now-badge .dot{width:5px;height:5px;background:var(--primary);border-radius:50%;animation:pulse 1.8s ease-in-out infinite;flex-shrink:0}
+.m-time-left{font-size:.55rem;color:var(--primary);font-weight:600;margin-top:2px}
+.active-muhurta-banner{margin:0 0 10px;padding:10px 13px;border-radius:12px;display:flex;align-items:center;gap:10px;border:1px solid rgba(245,166,35,.4);background:rgba(245,166,35,.08)}
+.active-muhurta-banner.warn{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.06)}
+.amb-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);animation:pulse 1.8s ease-in-out infinite;flex-shrink:0}
+.active-muhurta-banner.warn .amb-dot{background:#f87171}
+.amb-body{flex:1}
+.amb-label{font-size:.52rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.amb-name{font-size:.78rem;font-weight:600;font-family:'Noto Serif',serif;color:var(--primary)}
+.active-muhurta-banner.warn .amb-name{color:#f87171}
+.amb-time{font-size:.55rem;font-family:monospace;color:var(--muted)}
 .m-icon{font-size:1.2rem;flex-shrink:0;margin-top:1px}
 .m-body{flex:1;min-width:0}
 .m-label{font-size:.68rem;font-weight:600}
@@ -460,12 +472,12 @@ function gaurabda(date){
   const y=date.getFullYear(),m=date.getMonth()+1,d=date.getDate();
   return y-1486-((m<3||(m===3&&d<15))?1:0);
 }
-function hinduMonth(jd){const idx=Math.floor(sunLong(jd)/30)%12;return{name:HM[idx],vaishnavName:VM[idx]}}
+function hinduMonth(jd){const idx=Math.floor(sunLongSid(jd)/30)%12;return{name:HM[idx],vaishnavName:VM[idx]}}
 function adhikMaas(jd){
   const elong=norm(moonLong(jd)-sunLong(jd));
   const prevNM=findElong(jd-(elong/360)*29.53-2,jd,0);
   const nextNM=findElong(jd,jd+32,0);
-  const sS=sunLong(prevNM),sE=sunLong(nextNM);
+  const sS=sunLongSid(prevNM),sE=sunLongSid(nextNM);
   const moved=norm(sE-sS);
   const dist=norm((Math.floor(sS/30)+1)*30-sS);
   const isAdhik=dist>=moved;
@@ -923,30 +935,46 @@ function renderAll(){
   document.getElementById('karana-rows').innerHTML=renderPeriodRows(karanaPeriods);
 
   // Auspicious/Inauspicious — from DISPLAYED vaar
-  function isNowM(s,e){return isActive&&now>=s&&now<e}
+  function isNowM(s,e){return isActive&&s&&e&&now>=s&&now<e}
   function mRowH(icon,label,s,e,desc,type){
-    return`<div class="m-row ${type}${isNowM(s,e)?' now-active':''}">
+    const active=isNowM(s,e);
+    const timeLeft=active?`<div class="m-time-left">ends ${fmtEnd(e,now)} &nbsp;·&nbsp; ${dur(now,e)} left</div>`:'';
+    const nowBadge=active?`<span class="m-now-badge"><span class="dot"></span>NOW</span>`:'';
+    return`<div class="m-row ${type}${active?' now-active':''}">
       <span class="m-icon">${icon}</span>
-      <div class="m-body"><div class="m-label">${label}</div><div class="m-desc">${desc}</div></div>
+      <div class="m-body"><div class="m-label">${label}${nowBadge}</div><div class="m-desc">${desc}</div>${timeLeft}</div>
       <div class="m-time">${fmtDate(s)}<br>${fmt12(s)} – ${fmtEnd(e,s)}<br><span style="opacity:.6">${dur(s,e)}</span></div>
     </div>`;
   }
-  document.getElementById('ausp-rows').innerHTML=[
+  function activeBanner(items,warnCls){
+    const a=items.find(x=>isNowM(x.s,x.e));
+    if(!a)return'';
+    return`<div class="active-muhurta-banner ${warnCls}">
+      <div class="amb-dot"></div>
+      <div class="amb-body">
+        <div class="amb-label">Active Now</div>
+        <div class="amb-name">${a.icon} ${a.label}</div>
+        <div class="amb-time">${fmt12(a.s)} – ${fmtEnd(a.e,a.s)} &nbsp;·&nbsp; ${dur(now,a.e)} left</div>
+      </div>
+    </div>`;
+  }
+  const auspItems=[
     {icon:'🌅',label:'Brahma Muhurta',s:md.brahmaMuhurta.start,e:md.brahmaMuhurta.end,desc:'Best for meditation, study & prayer'},
     {icon:'🏆',label:'Abhijit Muhurta',s:md.abhijit.start,e:md.abhijit.end,desc:'Victory muhurta — excellent for important work'},
     {icon:'⚔️',label:'Vijaya Muhurta',s:md.vijaya.start,e:md.vijaya.end,desc:'Afternoon victory — good for negotiations'},
     {icon:'🌄',label:'Godhuli Muhurta',s:md.godhuli.start,e:md.godhuli.end,desc:'Sacred cow-dust time — around sunset'},
     {icon:'🌙',label:'Nishita Muhurta',s:md.nishita.start,e:md.nishita.end,desc:'Midnight — Tantra, Mantra & deep Sadhana'},
     ...(md.amritaKala?[{icon:'✨',label:'Amrita Kala',s:md.amritaKala.start,e:md.amritaKala.end,desc:'Nakshatra nectar time — abundant results'}]:[]),
-  ].map(x=>mRowH(x.icon,x.label,x.s,x.e,x.desc,'auspicious')).join('');
-
-  document.getElementById('inaup-rows').innerHTML=[
+  ];
+  const inaupItems=[
     {icon:'☠️',label:'Rahu Kalam',s:md.rahuKalam.start,e:md.rahuKalam.end,desc:'Strictly avoid new beginnings & auspicious work'},
-    {icon:'⚰️',label:'Yamaganda',s:md.yamaganda.start,e:md.yamaganda.end,desc:'Yama\'s period — avoid travel & decisions'},
+    {icon:'⚰️',label:'Yamaganda',s:md.yamaganda.start,e:md.yamaganda.end,desc:'Yama's period — avoid travel & decisions'},
     {icon:'🐍',label:'Gulika (Mandi)',s:md.gulika.start,e:md.gulika.end,desc:'Saturn-influenced — delays & obstacles'},
     ...(md.varjyam?[{icon:'🚫',label:'Varjyam / Tyajya',s:md.varjyam.start,e:md.varjyam.end,desc:'Moon-based window — avoid sacred activities'}]:[]),
     ...md.durMuhurtas.map((d,i)=>({icon:'⚠️',label:`Dur Muhurta ${i+1}`,s:d.start,e:d.end,desc:'Daily inauspicious slot — avoid new ventures'})),
-  ].map(x=>mRowH(x.icon,x.label,x.s,x.e,x.desc,'inauspicious')).join('');
+  ];
+  document.getElementById('ausp-rows').innerHTML=activeBanner(auspItems,'')+auspItems.map(x=>mRowH(x.icon,x.label,x.s,x.e,x.desc,'auspicious')).join('');
+  document.getElementById('inaup-rows').innerHTML=activeBanner(inaupItems,'warn')+inaupItems.map(x=>mRowH(x.icon,x.label,x.s,x.e,x.desc,'inauspicious')).join('');
 
   // Special yogas — recompute for displayVaar (may differ from activeVaar)
   let spDisplay=sp;
