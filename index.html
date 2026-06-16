@@ -273,10 +273,14 @@ function jdToDate(jd){return new Date((jd-2440587.5)*86400000)}
 // ── Lahiri Ayanamsa (IAU standard for Vedic calculations) ────────────────
 // Subtracts from tropical to get sidereal longitude
 function lahiriAyanamsa(jd){
-  const T=(jd-2451545.0)/36525;
-  // Chitrapaksha/Lahiri: epoch J1900.0 value 22°27''22" + rate
-  return 22.46045+(jd-2415020.3)/365.25*0.013587556;
+  // Chitrapaksha/Lahiri — J2000.0 epoch 23.85358°, rate 50.2564"/yr (0.013597°/yr)
+  return 23.85358+0.013597*(jd-2451545.0)/365.25;
 }
+
+
+
+
+
 // Sidereal versions used for Nakshatra/Yoga/Karana (Vedic)
 function moonLongSid(jd){return norm(moonLong(jd)-lahiriAyanamsa(jd));}
 function sunLongSid(jd){return norm(sunLong(jd)-lahiriAyanamsa(jd));}
